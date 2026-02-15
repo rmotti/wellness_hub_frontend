@@ -1,27 +1,42 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  Target, 
-  Edit, 
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Calendar,
+  Target,
+  Edit,
   TrendingUp,
   Dumbbell,
-  Plus
+  Plus,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockStudents, mockMeasurements, mockWorkoutPlans } from '@/data/mockData';
+import { mockStudents, mockMeasurements, mockAssignments } from '@/data/mockData';
+import { Measurement, Assignment } from '@/types';
+import { MeasurementDialog } from '@/components/MeasurementDialog';
+import { AssignWorkoutDialog } from '@/components/AssignWorkoutDialog';
+import { toast } from 'sonner';
 
 export default function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const student = mockStudents.find(s => s.id === id);
-  const measurements = mockMeasurements.filter(m => m.studentId === id);
-  const workouts = mockWorkoutPlans.filter(w => w.studentId === id);
+
+  const [measurements, setMeasurements] = useState<Measurement[]>(
+    mockMeasurements.filter(m => m.studentId === id)
+  );
+  const [assignments, setAssignments] = useState<Assignment[]>(
+    mockAssignments.filter(a => a.studentId === id)
+  );
+
+  const [measurementDialogOpen, setMeasurementDialogOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+
   const latestMeasurement = measurements[measurements.length - 1];
 
   if (!student) {
@@ -44,6 +59,21 @@ export default function StudentDetail() {
       age--;
     }
     return age;
+  };
+
+  const handleSaveMeasurement = (measurement: Measurement) => {
+    setMeasurements([...measurements, measurement]);
+  };
+
+  const handleSaveAssignment = (assignment: Assignment) => {
+    setAssignments([...assignments, assignment]);
+  };
+
+  const handleFinishAssignment = (assignmentId: string) => {
+    setAssignments(assignments.map(a =>
+      a.id === assignmentId ? { ...a, status: 'completed' as const } : a
+    ));
+    toast.success('Ficha finalizada com sucesso!');
   };
 
   return (
@@ -143,7 +173,7 @@ export default function StudentDetail() {
                 {latestMeasurement ? new Date(latestMeasurement.date).toLocaleDateString('pt-BR') : 'Sem avaliação'}
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setMeasurementDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Nova
             </Button>
@@ -161,17 +191,17 @@ export default function StudentDetail() {
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">% Gordura</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.bodyFat}%</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.bodyFat ?? '—'}%</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Massa Muscular</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.muscleMass} kg</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.muscleMass ?? '—'} kg</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
                 <p>Nenhuma avaliação registrada</p>
-                <Button className="mt-2" size="sm">
+                <Button className="mt-2" size="sm" onClick={() => setMeasurementDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Adicionar avaliação
                 </Button>
@@ -180,26 +210,24 @@ export default function StudentDetail() {
           </CardContent>
         </Card>
 
-        {/* Workouts */}
+        {/* Assignments */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Fichas de Treino</CardTitle>
-              <CardDescription>{workouts.length} ficha(s)</CardDescription>
+              <CardTitle className="text-lg">Treinos Atribuídos</CardTitle>
+              <CardDescription>{assignments.length} atribuição(ões)</CardDescription>
             </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link to={`/workouts/new?student=${id}`}>
-                <Plus className="mr-2 h-4 w-4" />
-                Nova
-              </Link>
+            <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Atribuir
             </Button>
           </CardHeader>
           <CardContent>
-            {workouts.length > 0 ? (
+            {assignments.length > 0 ? (
               <div className="space-y-3">
-                {workouts.map((workout) => (
+                {assignments.map((assignment) => (
                   <div
-                    key={workout.id}
+                    key={assignment.id}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex items-center gap-3">
@@ -207,28 +235,59 @@ export default function StudentDetail() {
                         <Dumbbell className="h-5 w-5 text-accent" />
                       </div>
                       <div>
-                        <p className="font-medium">{workout.name}</p>
+                        <p className="font-medium">{assignment.workoutName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {workout.days.length} treino(s)
+                          {new Date(assignment.startDate).toLocaleDateString('pt-BR')} - {new Date(assignment.endDate).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     </div>
-                    <Badge 
-                      variant={workout.status === 'active' ? 'default' : 'secondary'}
-                    >
-                      {workout.status === 'active' ? 'Ativa' : 'Concluída'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {assignment.status === 'active' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleFinishAssignment(assignment.id)}
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Finalizar
+                        </Button>
+                      )}
+                      <Badge
+                        variant={assignment.status === 'active' ? 'default' : 'secondary'}
+                      >
+                        {assignment.status === 'active' ? 'Ativa' : 'Concluída'}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
-                <p>Nenhuma ficha cadastrada</p>
+                <p>Nenhum treino atribuído</p>
+                <Button className="mt-2" size="sm" onClick={() => setAssignDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Atribuir treino
+                </Button>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialogs */}
+      <MeasurementDialog
+        studentId={id!}
+        open={measurementDialogOpen}
+        onOpenChange={setMeasurementDialogOpen}
+        onSave={handleSaveMeasurement}
+      />
+      <AssignWorkoutDialog
+        studentId={id!}
+        studentName={student.name}
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        onSave={handleSaveAssignment}
+      />
     </div>
   );
 }

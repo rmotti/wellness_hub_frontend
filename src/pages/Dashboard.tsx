@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { dashboardStats, mockStudents, mockWorkoutPlans } from '@/data/mockData';
+import { dashboardStats, mockStudents, mockWorkouts } from '@/data/mockData';
 
 const statCards = [
   {
@@ -15,9 +15,9 @@ const statCards = [
     trendUp: true,
   },
   {
-    title: 'Fichas de Treino',
+    title: 'Modelos de Treino',
     value: dashboardStats.totalWorkouts,
-    description: `${dashboardStats.activeWorkouts} ativas`,
+    description: `${dashboardStats.activeWorkouts} ativos`,
     icon: Dumbbell,
     trend: '+5%',
     trendUp: true,
@@ -42,7 +42,7 @@ const statCards = [
 
 export default function Dashboard() {
   const recentStudents = mockStudents.slice(0, 4);
-  const recentWorkouts = mockWorkoutPlans.slice(0, 3);
+  const recentWorkouts = mockWorkouts.slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -64,7 +64,7 @@ export default function Dashboard() {
           <Button asChild>
             <Link to="/workouts/new">
               <Dumbbell className="mr-2 h-4 w-4" />
-              Nova Ficha
+              Novo Modelo
             </Link>
           </Button>
         </div>
@@ -146,11 +146,11 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Fichas de Treino</CardTitle>
-              <CardDescription>Fichas recentemente criadas</CardDescription>
+              <CardTitle>Modelos de Treino</CardTitle>
+              <CardDescription>Modelos recentemente criados</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/workouts">Ver todas</Link>
+              <Link to="/workouts">Ver todos</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -166,17 +166,15 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="font-medium">{workout.name}</p>
-                      <p className="text-sm text-muted-foreground">{workout.studentName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {workout.days.length} treino(s)
+                      </p>
                     </div>
                   </div>
-                  <Badge 
-                    variant={
-                      workout.status === 'active' ? 'default' : 
-                      workout.status === 'completed' ? 'secondary' : 'outline'
-                    }
+                  <Badge
+                    variant={workout.status === 'active' ? 'default' : 'outline'}
                   >
-                    {workout.status === 'active' ? 'Ativa' : 
-                     workout.status === 'completed' ? 'Concluída' : 'Rascunho'}
+                    {workout.status === 'active' ? 'Ativo' : 'Rascunho'}
                   </Badge>
                 </div>
               ))}

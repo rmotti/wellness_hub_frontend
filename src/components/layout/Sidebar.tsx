@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Dumbbell, 
-  TrendingUp, 
+import {
+  LayoutDashboard,
+  Users,
+  Dumbbell,
+  ListChecks,
+  TrendingUp,
   Settings,
   LogOut,
   ChevronLeft,
@@ -16,7 +17,8 @@ import { useState } from 'react';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: Users, label: 'Alunos', path: '/students' },
-  { icon: Dumbbell, label: 'Fichas de Treino', path: '/workouts' },
+  { icon: Dumbbell, label: 'Modelos de Treino', path: '/workouts' },
+  { icon: ListChecks, label: 'Exercícios', path: '/exercises' },
   { icon: TrendingUp, label: 'Evolução', path: '/evolution' },
   { icon: Settings, label: 'Configurações', path: '/settings' },
 ];

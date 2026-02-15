@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Search, 
-  Plus, 
-  MoreHorizontal, 
-  Calendar,
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
   Filter,
   Dumbbell
 } from 'lucide-react';
@@ -25,17 +24,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockWorkoutPlans } from '@/data/mockData';
-import { WorkoutPlan } from '@/types';
+import { mockWorkouts } from '@/data/mockData';
+import { Workout } from '@/types';
 
 export default function Workouts() {
-  const [workouts, setWorkouts] = useState<WorkoutPlan[]>(mockWorkoutPlans);
+  const [workouts, setWorkouts] = useState<Workout[]>(mockWorkouts);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const filteredWorkouts = workouts.filter((workout) => {
-    const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         workout.studentName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || workout.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -49,15 +47,15 @@ export default function Workouts() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Fichas de Treino</h1>
+          <h1 className="text-3xl font-bold">Modelos de Treino</h1>
           <p className="text-muted-foreground">
-            Gerencie as fichas de treino dos seus alunos
+            Gerencie seus modelos de treino
           </p>
         </div>
         <Button asChild>
           <Link to="/workouts/new">
             <Plus className="mr-2 h-4 w-4" />
-            Nova Ficha
+            Novo Modelo
           </Link>
         </Button>
       </div>
@@ -69,7 +67,7 @@ export default function Workouts() {
             <div className="relative flex-1 md:max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar fichas ou alunos..."
+                placeholder="Buscar modelos de treino..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -82,9 +80,8 @@ export default function Workouts() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="active">Ativas</SelectItem>
-                  <SelectItem value="completed">Concluídas</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativos</SelectItem>
                   <SelectItem value="draft">Rascunhos</SelectItem>
                 </SelectContent>
               </Select>
@@ -95,7 +92,7 @@ export default function Workouts() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkouts.length === 0 ? (
               <div className="col-span-full p-8 text-center text-muted-foreground">
-                Nenhuma ficha encontrada
+                Nenhum modelo encontrado
               </div>
             ) : (
               filteredWorkouts.map((workout) => (
@@ -108,7 +105,9 @@ export default function Workouts() {
                         </div>
                         <div>
                           <h3 className="font-semibold">{workout.name}</h3>
-                          <p className="text-sm text-muted-foreground">{workout.studentName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {workout.days.length} treino(s)
+                          </p>
                         </div>
                       </div>
                       <DropdownMenu>
@@ -125,7 +124,7 @@ export default function Workouts() {
                             <Link to={`/workouts/${workout.id}/edit`}>Editar</Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => handleDelete(workout.id)}
                           >
@@ -136,29 +135,15 @@ export default function Workouts() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {new Date(workout.startDate).toLocaleDateString('pt-BR')} - {new Date(workout.endDate).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {workout.days.length} treino(s)
-                          </span>
-                        </div>
-                        <Badge 
-                          variant={
-                            workout.status === 'active' ? 'default' : 
-                            workout.status === 'completed' ? 'secondary' : 'outline'
-                          }
-                        >
-                          {workout.status === 'active' ? 'Ativa' : 
-                           workout.status === 'completed' ? 'Concluída' : 'Rascunho'}
-                        </Badge>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Criado em {new Date(workout.createdAt).toLocaleDateString('pt-BR')}
+                      </span>
+                      <Badge
+                        variant={workout.status === 'active' ? 'default' : 'outline'}
+                      >
+                        {workout.status === 'active' ? 'Ativo' : 'Rascunho'}
+                      </Badge>
                     </div>
                   </CardContent>
                 </Card>
