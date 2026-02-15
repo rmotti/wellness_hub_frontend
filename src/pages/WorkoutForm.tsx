@@ -1,23 +1,18 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2, GripVertical } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, GripVertical, Target, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { mockWorkouts, mockExercises } from '@/data/mockData';
 import { toast } from 'sonner';
 import { WorkoutExercise, WorkoutDay } from '@/types';
@@ -30,18 +25,28 @@ export default function WorkoutForm() {
 
   const existingWorkout = isEditing ? mockWorkouts.find(w => w.id === id) : null;
 
+  // Ajustado para a interface Workout: nome_treino, objetivo_treino, descricao
   const [formData, setFormData] = useState({
-    name: existingWorkout?.name || '',
-    status: existingWorkout?.status || 'draft' as 'active' | 'draft',
+    nome_treino: existingWorkout?.nome_treino || '',
+    objetivo_treino: existingWorkout?.objetivo_treino || '',
+    descricao: existingWorkout?.descricao || '',
   });
 
   const [days, setDays] = useState<WorkoutDay[]>(
-    existingWorkout?.days || [
+    [
       {
         id: '1',
-        name: 'Treino A',
-        exercises: [
-          { id: '1', exerciseId: '', exerciseName: '', sets: 3, reps: '10-12', rest: '60s', order: 1 }
+        nome: 'Treino A',
+        exercicios: [
+          { 
+            id: '1', 
+            exercicio_id: '', 
+            treino_id: id || '', 
+            ordem: 1, 
+            series: '3', 
+            repeticoes: 12, 
+            descanso_segundos: 60 
+          }
         ]
       }
     ]
@@ -50,8 +55,16 @@ export default function WorkoutForm() {
   const addDay = () => {
     const newDay: WorkoutDay = {
       id: Date.now().toString(),
-      name: `Treino ${String.fromCharCode(65 + days.length)}`,
-      exercises: [{ id: Date.now().toString(), exerciseId: '', exerciseName: '', sets: 3, reps: '10-12', rest: '60s', order: 1 }]
+      nome: `Treino ${String.fromCharCode(65 + days.length)}`,
+      exercicios: [{ 
+        id: Date.now().toString(), 
+        exercicio_id: '', 
+        treino_id: id || '', 
+        ordem: 1, 
+        series: '3', 
+        repeticoes: 12, 
+        descanso_segundos: 60 
+      }]
     };
     setDays([...days, newDay]);
   };
@@ -67,9 +80,17 @@ export default function WorkoutForm() {
       if (day.id === dayId) {
         return {
           ...day,
-          exercises: [
-            ...day.exercises,
-            { id: Date.now().toString(), exerciseId: '', exerciseName: '', sets: 3, reps: '10-12', rest: '60s', order: day.exercises.length + 1 }
+          exercicios: [
+            ...day.exercicios,
+            { 
+              id: Date.now().toString(), 
+              exercicio_id: '', 
+              treino_id: id || '', 
+              ordem: day.exercicios.length + 1, 
+              series: '3', 
+              repeticoes: 12, 
+              descanso_segundos: 60 
+            }
           ]
         };
       }
@@ -79,23 +100,23 @@ export default function WorkoutForm() {
 
   const removeExercise = (dayId: string, exerciseId: string) => {
     setDays(days.map(day => {
-      if (day.id === dayId && day.exercises.length > 1) {
+      if (day.id === dayId && day.exercicios.length > 1) {
         return {
           ...day,
-          exercises: day.exercises.filter(e => e.id !== exerciseId)
+          exercicios: day.exercicios.filter(e => e.id !== exerciseId)
         };
       }
       return day;
     }));
   };
 
-  const handleExerciseSelect = (dayId: string, workoutExerciseId: string, exerciseId: string, exerciseName: string) => {
+  const handleExerciseSelect = (dayId: string, workoutExerciseId: string, exercicio_id: string) => {
     setDays(days.map(day => {
       if (day.id === dayId) {
         return {
           ...day,
-          exercises: day.exercises.map(e =>
-            e.id === workoutExerciseId ? { ...e, exerciseId, exerciseName } : e
+          exercicios: day.exercicios.map(e =>
+            e.id === workoutExerciseId ? { ...e, exercicio_id } : e
           )
         };
       }
@@ -103,13 +124,13 @@ export default function WorkoutForm() {
     }));
   };
 
-  const updateExercise = (dayId: string, exerciseId: string, field: keyof WorkoutExercise, value: string | number) => {
+  const updateExercise = (dayId: string, workoutExerciseId: string, field: keyof WorkoutExercise, value: string | number) => {
     setDays(days.map(day => {
       if (day.id === dayId) {
         return {
           ...day,
-          exercises: day.exercises.map(e =>
-            e.id === exerciseId ? { ...e, [field]: value } : e
+          exercicios: day.exercicios.map(e =>
+            e.id === workoutExerciseId ? { ...e, [field]: value } : e
           )
         };
       }
@@ -117,21 +138,25 @@ export default function WorkoutForm() {
     }));
   };
 
-  const updateDayName = (dayId: string, name: string) => {
+  const updateDayName = (dayId: string, nome: string) => {
     setDays(days.map(day =>
-      day.id === dayId ? { ...day, name } : day
+      day.id === dayId ? { ...day, nome } : day
     ));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      exercicios: days.flatMap(d => d.exercicios)
+    };
+    console.log("Payload para API:", payload);
     toast.success(isEditing ? 'Modelo atualizado com sucesso!' : 'Modelo criado com sucesso!');
     navigate('/workouts');
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
@@ -147,114 +172,123 @@ export default function WorkoutForm() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Basic Info */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Informações do Modelo</CardTitle>
             <CardDescription>Dados gerais do treino</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome do Modelo *</Label>
+                <Label htmlFor="nome_treino">Nome do Modelo *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  id="nome_treino"
+                  value={formData.nome_treino}
+                  onChange={(e) => setFormData({...formData, nome_treino: e.target.value})}
                   placeholder="Ex: Hipertrofia - Fase 1"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'active' | 'draft') => setFormData({...formData, status: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Rascunho</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="objetivo_treino">Objetivo do Treino *</Label>
+                <div className="relative">
+                  <Target className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="objetivo_treino"
+                    className="pl-10"
+                    value={formData.objetivo_treino}
+                    onChange={(e) => setFormData({...formData, objetivo_treino: e.target.value})}
+                    placeholder="Ex: Ganho de Massa"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="descricao">Descrição (Opcional)</Label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Textarea
+                  id="descricao"
+                  className="pl-10"
+                  value={formData.descricao}
+                  onChange={(e) => setFormData({...formData, descricao: e.target.value})}
+                  placeholder="Instruções gerais sobre o modelo de treino..."
+                />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Workout Days */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Treinos</h2>
+            <h2 className="text-xl font-semibold">Estrutura de Treinos</h2>
             <Button type="button" variant="outline" onClick={addDay}>
               <Plus className="mr-2 h-4 w-4" />
-              Adicionar Treino
+              Adicionar Novo Dia
             </Button>
           </div>
 
           <Accordion type="multiple" defaultValue={days.map(d => d.id)} className="space-y-4">
             {days.map((day) => (
-              <AccordionItem key={day.id} value={day.id} className="border rounded-lg">
+              <AccordionItem key={day.id} value={day.id} className="border rounded-lg bg-card">
                 <AccordionTrigger className="px-4 hover:no-underline">
                   <div className="flex items-center gap-3">
                     <GripVertical className="h-5 w-5 text-muted-foreground" />
                     <Input
-                      value={day.name}
+                      value={day.nome}
                       onChange={(e) => {
                         e.stopPropagation();
                         updateDayName(day.id, e.target.value);
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-8 w-48"
+                      className="h-8 w-48 font-semibold"
                     />
-                    <span className="text-sm text-muted-foreground">
-                      {day.exercises.length} exercício(s)
-                    </span>
+                    <Badge variant="secondary">
+                      {day.exercicios.length} exercício(s)
+                    </Badge>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <div className="space-y-3">
-                    {/* Exercise Header */}
-                    <div className="grid grid-cols-12 gap-2 text-sm font-medium text-muted-foreground">
+                    <div className="grid grid-cols-12 gap-2 text-sm font-medium text-muted-foreground px-2">
                       <div className="col-span-5">Exercício</div>
                       <div className="col-span-2">Séries</div>
-                      <div className="col-span-2">Repetições</div>
-                      <div className="col-span-2">Descanso</div>
+                      <div className="col-span-2">Reps</div>
+                      <div className="col-span-2">Descanso (s)</div>
                       <div className="col-span-1"></div>
                     </div>
 
-                    {/* Exercises */}
-                    {day.exercises.map((exercise) => (
-                      <div key={exercise.id} className="grid grid-cols-12 gap-2">
+                    {day.exercicios.map((exercise) => (
+                      <div key={exercise.id} className="grid grid-cols-12 gap-2 items-center">
                         <div className="col-span-5">
                           <ExerciseCombobox
                             exercises={mockExercises}
-                            value={exercise.exerciseId}
-                            onSelect={(exId, exName) => handleExerciseSelect(day.id, exercise.id, exId, exName)}
+                            value={exercise.exercicio_id}
+                            onSelect={(exId) => handleExerciseSelect(day.id, exercise.id, exId)}
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <Input
+                            value={exercise.series}
+                            onChange={(e) => updateExercise(day.id, exercise.id, 'series', e.target.value)}
+                            placeholder="3"
                           />
                         </div>
                         <div className="col-span-2">
                           <Input
                             type="number"
-                            value={exercise.sets}
-                            onChange={(e) => updateExercise(day.id, exercise.id, 'sets', parseInt(e.target.value))}
+                            value={exercise.repeticoes}
+                            onChange={(e) => updateExercise(day.id, exercise.id, 'repeticoes', parseInt(e.target.value))}
                             min={1}
                           />
                         </div>
                         <div className="col-span-2">
                           <Input
-                            value={exercise.reps}
-                            onChange={(e) => updateExercise(day.id, exercise.id, 'reps', e.target.value)}
-                            placeholder="10-12"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Input
-                            value={exercise.rest}
-                            onChange={(e) => updateExercise(day.id, exercise.id, 'rest', e.target.value)}
-                            placeholder="60s"
+                            type="number"
+                            value={exercise.descanso_segundos}
+                            onChange={(e) => updateExercise(day.id, exercise.id, 'descanso_segundos', parseInt(e.target.value))}
+                            placeholder="60"
                           />
                         </div>
                         <div className="col-span-1 flex justify-end">
@@ -263,36 +297,18 @@ export default function WorkoutForm() {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeExercise(day.id, exercise.id)}
-                            disabled={day.exercises.length === 1}
+                            disabled={day.exercicios.length === 1}
                           >
-                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
                       </div>
                     ))}
 
-                    <div className="flex justify-between pt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addExercise(day.id)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Adicionar Exercício
+                    <div className="flex justify-between pt-4">
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addExercise(day.id)}>
+                        <Plus className="mr-2 h-4 w-4" /> Adicionar Exercício
                       </Button>
-                      {days.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeDay(day.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Remover Treino
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </AccordionContent>
@@ -301,14 +317,10 @@ export default function WorkoutForm() {
           </Accordion>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-            Cancelar
-          </Button>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancelar</Button>
           <Button type="submit">
-            <Save className="mr-2 h-4 w-4" />
-            {isEditing ? 'Salvar alterações' : 'Criar modelo'}
+            <Save className="mr-2 h-4 w-4" /> {isEditing ? 'Salvar alterações' : 'Criar modelo'}
           </Button>
         </div>
       </form>

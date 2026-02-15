@@ -32,12 +32,15 @@ export default function Exercises() {
   const [searchTerm, setSearchTerm] = useState('');
   const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>('all');
 
-  const muscleGroups = [...new Set(mockExercises.map(e => e.muscleGroup).filter(Boolean))] as string[];
+  // Ajustado: Uso da chave 'grupo_muscular' conforme a interface Exercise
+  const muscleGroups = [...new Set(mockExercises.map(e => e.grupo_muscular).filter(Boolean))] as string[];
 
   const filteredExercises = exercises.filter((exercise) => {
-    const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (exercise.equipment || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGroup = muscleGroupFilter === 'all' || exercise.muscleGroup === muscleGroupFilter;
+    // Ajustado: Busca agora utiliza 'nome' e 'grupo_muscular'
+    const matchesSearch = exercise.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (exercise.grupo_muscular || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesGroup = muscleGroupFilter === 'all' || exercise.grupo_muscular === muscleGroupFilter;
     return matchesSearch && matchesGroup;
   });
 
@@ -96,9 +99,8 @@ export default function Exercises() {
           <div className="rounded-lg border">
             <div className="grid grid-cols-12 gap-4 border-b bg-muted/50 p-4 text-sm font-medium text-muted-foreground">
               <div className="col-span-5">Exercício</div>
-              <div className="col-span-3">Grupo Muscular</div>
-              <div className="col-span-3">Equipamento</div>
-              <div className="col-span-1"></div>
+              <div className="col-span-4">Grupo Muscular</div>
+              <div className="col-span-3">Ações</div>
             </div>
             {filteredExercises.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
@@ -114,19 +116,22 @@ export default function Exercises() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <Dumbbell className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="font-medium">{exercise.name}</span>
+                    {/* Ajustado: campo 'nome' */}
+                    <span className="font-medium">{exercise.nome}</span>
                   </div>
-                  <div className="col-span-3 flex items-center">
-                    {exercise.muscleGroup && (
-                      <Badge variant="secondary">{exercise.muscleGroup}</Badge>
+                  <div className="col-span-4 flex items-center">
+                    {/* Ajustado: campo 'grupo_muscular' */}
+                    {exercise.grupo_muscular && (
+                      <Badge variant="secondary">{exercise.grupo_muscular}</Badge>
                     )}
                   </div>
-                  <div className="col-span-3 flex items-center">
-                    <span className="text-sm text-muted-foreground">
-                      {exercise.equipment || '—'}
-                    </span>
-                  </div>
-                  <div className="col-span-1 flex items-center justify-end">
+                  <div className="col-span-3 flex items-center justify-end">
+                    {/* Link para vídeo se existir na interface */}
+                    {exercise.link_video && (
+                       <Button variant="ghost" size="sm" className="mr-2" asChild>
+                          <a href={exercise.link_video} target="_blank" rel="noopener noreferrer">Ver vídeo</a>
+                       </Button>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">

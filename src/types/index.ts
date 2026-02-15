@@ -1,78 +1,66 @@
 export interface Student {
   id: string;
-  name: string;
+  nome: string;
   email: string;
-  phone: string;
-  birthDate: string;
-  goal: string;
-  status: 'active' | 'inactive';
-  createdAt: string;
-  avatar?: string;
+  telefone: string;
+  objetivo: string;
+  status: 'Ativo' | 'Inativo';
+  role: 'ADMIN' | 'ALUNO';
 }
 
 export interface Measurement {
   id: string;
-  studentId: string;
-  date: string;
-  weight: number;
-  height: number;
-  bodyFat?: number;
-  muscleMass?: number;
-  chest?: number;
-  waist?: number;
-  hip?: number;
-  arm?: number;
-  thigh?: number;
+  usuario_id: string;
+  data_medicao: string;
+  peso: number;
+  altura: number;
+  bf_percentual?: number;
 }
 
 export interface Exercise {
   id: string;
-  name: string;
-  muscleGroup?: string;
-  equipment?: string;
-  description?: string;
+  nome: string;
+  grupo_muscular?: string;
+  link_video?: string;
+  descricao?: string;
 }
 
 export interface WorkoutExercise {
   id: string;
-  exerciseId: string;
-  exerciseName: string;
-  sets: number;
-  reps: string;
-  rest: string;
-  order: number;
-  notes?: string;
+  exercicio_id: string;
+  treino_id: string;
+  ordem: number;
+  series: string;
+  descanso_segundos: number;
+  repeticoes: number;
+  observacao_especifica?: string;
 }
 
 export interface WorkoutDay {
   id: string;
-  name: string;
-  exercises: WorkoutExercise[];
+  nome: string;
+  exercicios: WorkoutExercise[];
 }
 
 export interface Workout {
   id: string;
-  name: string;
-  days: WorkoutDay[];
-  status: 'active' | 'draft';
-  createdAt: string;
+  nome_treino: string;
+  objetivo_treino: string;
+  descricao?: string;
 }
 
 export interface Assignment {
   id: string;
-  studentId: string;
-  studentName: string;
-  workoutId: string;
-  workoutName: string;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'completed';
-  createdAt: string;
+  usuario_id: string;
+  treino_id: string;
+  data_inicio: string;
+  data_fim?: string;
+  status_treino: 'Ativo' | 'Finalizado';
 }
 
 export interface User {
   id: string;
-  name: string;
+  nome: string;
   email: string;
   avatar?: string;
 }
@@ -84,7 +72,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  name: string;
+  nome: string;
   email: string;
   password: string;
 }

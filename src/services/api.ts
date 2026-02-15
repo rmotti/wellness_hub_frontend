@@ -3,7 +3,9 @@ import axios from 'axios';
 const TOKEN_KEY = 'pm_team_token';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3001',
+  // Prioriza a variável do .env (VITE_API_URL). 
+  // Se não existir, usa a sua URL da Vercel como padrão.
+  baseURL: import.meta.env.VITE_API_URL || 'https://welness-hub-backend.vercel.app/',
 });
 
 api.interceptors.request.use((config) => {
@@ -17,9 +19,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Tratamento de 401 (Sessão expirada ou Token inválido)
     if (error.response?.status === 401) {
       localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/';
+      
+      // Evita loop de redirecionamento se já estivermos na tela de login
+      if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }

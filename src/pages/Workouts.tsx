@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Filter,
-  Dumbbell
-} from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Dumbbell, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -17,25 +11,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { mockWorkouts } from '@/data/mockData';
 import { Workout } from '@/types';
 
 export default function Workouts() {
   const [workouts, setWorkouts] = useState<Workout[]>(mockWorkouts);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  // Filtro ajustado para 'nome_treino' e 'objetivo_treino'
   const filteredWorkouts = workouts.filter((workout) => {
-    const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || workout.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return (
+      workout.nome_treino.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      workout.objetivo_treino.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   });
 
   const handleDelete = (id: string) => {
@@ -44,59 +32,37 @@ export default function Workouts() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Modelos de Treino</h1>
-          <p className="text-muted-foreground">
-            Gerencie seus modelos de treino
-          </p>
+          <p className="text-muted-foreground">Gerencie seus modelos de treino reutilizáveis</p>
         </div>
         <Button asChild>
           <Link to="/workouts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Modelo
+            <Plus className="mr-2 h-4 w-4" /> Novo Modelo
           </Link>
         </Button>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardHeader className="pb-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="relative flex-1 md:max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar modelos de treino..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-3">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Ativos</SelectItem>
-                  <SelectItem value="draft">Rascunhos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="relative flex-1 md:max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome ou objetivo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkouts.length === 0 ? (
-              <div className="col-span-full p-8 text-center text-muted-foreground">
-                Nenhum modelo encontrado
-              </div>
+              <div className="col-span-full p-8 text-center text-muted-foreground">Nenhum modelo encontrado</div>
             ) : (
               filteredWorkouts.map((workout) => (
-                <Card key={workout.id} className="relative overflow-hidden">
+                <Card key={workout.id} className="relative overflow-hidden hover:border-primary/50 transition-colors">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -104,10 +70,10 @@ export default function Workouts() {
                           <Dumbbell className="h-6 w-6 text-accent" />
                         </div>
                         <div>
-                          <h3 className="font-semibold">{workout.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {workout.days.length} treino(s)
-                          </p>
+                          <h3 className="font-semibold">{workout.nome_treino}</h3>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                            <Target className="h-3 w-3" /> {workout.objetivo_treino}
+                          </div>
                         </div>
                       </div>
                       <DropdownMenu>
@@ -117,33 +83,22 @@ export default function Workouts() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/workouts/${workout.id}`}>Ver detalhes</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/workouts/${workout.id}/edit`}>Editar</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDelete(workout.id)}
-                          >
-                            Excluir
-                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild><Link to={`/workouts/${workout.id}`}>Ver detalhes</Link></DropdownMenuItem>
+                          <DropdownMenuItem asChild><Link to={`/workouts/${workout.id}/edit`}>Editar</Link></DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(workout.id)}>Excluir</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Criado em {new Date(workout.createdAt).toLocaleDateString('pt-BR')}
-                      </span>
-                      <Badge
-                        variant={workout.status === 'active' ? 'default' : 'outline'}
-                      >
-                        {workout.status === 'active' ? 'Ativo' : 'Rascunho'}
-                      </Badge>
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                      {workout.descricao || "Sem descrição disponível."}
+                    </p>
+                    <div className="mt-4 flex justify-between items-center">
+                       <Badge variant="outline">Modelo Base</Badge>
+                       <Button variant="link" size="sm" className="h-auto p-0" asChild>
+                         <Link to={`/workouts/${workout.id}`}>Configurar</Link>
+                       </Button>
                     </div>
                   </CardContent>
                 </Card>

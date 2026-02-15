@@ -11,10 +11,10 @@ export const authService = {
   },
 
   getProfile(): Promise<User> {
-    return api.get('/auth/profile').then((res) => res.data);
+    return api.get('/auth/me').then((res) => res.data);
   },
 
   updateProfile(data: Partial<User>): Promise<User> {
-    return api.put('/auth/profile', data).then((res) => res.data);
+    return api.put('/auth/me', data).then((res) => res.data);
   },
 };

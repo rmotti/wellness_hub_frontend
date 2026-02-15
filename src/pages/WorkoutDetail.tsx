@@ -9,6 +9,7 @@ export default function WorkoutDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Ajustado: Busca o treino no mock seguindo a interface atualizada
   const workout = mockWorkouts.find(w => w.id === id);
 
   if (!workout) {
@@ -32,15 +33,15 @@ export default function WorkoutDetail() {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">{workout.name}</h1>
-              <Badge
-                variant={workout.status === 'active' ? 'default' : 'outline'}
-              >
-                {workout.status === 'active' ? 'Ativo' : 'Rascunho'}
+              {/* Ajustado: propriedade nome_treino */}
+              <h1 className="text-3xl font-bold">{workout.nome_treino}</h1>
+              <Badge variant="outline">
+                Modelo
               </Badge>
             </div>
+            {/* Ajustado: propriedade objetivo_treino */}
             <p className="mt-1 text-muted-foreground">
-              {workout.days.length} treino(s) • Criado em {new Date(workout.createdAt).toLocaleDateString('pt-BR')}
+              Objetivo: {workout.objetivo_treino}
             </p>
           </div>
         </div>
@@ -58,51 +59,34 @@ export default function WorkoutDetail() {
         </div>
       </div>
 
-      {/* Workout Days */}
-      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        {workout.days.map((day) => (
-          <Card key={day.id}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Dumbbell className="h-5 w-5 text-primary" />
-                </div>
-                {day.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {day.exercises.map((exercise, index) => (
-                  <div
-                    key={exercise.id}
-                    className="flex items-start gap-3 rounded-lg border p-3"
-                  >
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{exercise.exerciseName}</p>
-                      <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>{exercise.sets} séries</span>
-                        <span>×</span>
-                        <span>{exercise.reps} reps</span>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{exercise.rest}</span>
-                        </div>
-                      </div>
-                      {exercise.notes && (
-                        <p className="mt-1 text-sm text-muted-foreground italic">
-                          {exercise.notes}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Descrição do Treino */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Descrição do Modelo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Ajustado: propriedade descricao */}
+          <p className="text-muted-foreground">
+            {workout.descricao || "Nenhuma descrição fornecida para este modelo."}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Nota: Na sua interface Workout simplificada, os 'days' e 'exercises' 
+          fazem parte da montagem (Assignment/WorkoutExercise) no banco de dados. 
+          Se você quiser listar exercícios aqui, precisará usar a interface WorkoutDay 
+          ou buscar via WorkoutExerciseRequest conforme definido no Swagger. */}
+      
+      <div className="rounded-lg border border-dashed p-8 text-center">
+        <Dumbbell className="mx-auto h-12 w-12 text-muted-foreground/50" />
+        <h3 className="mt-4 text-lg font-semibold">Estrutura de Exercícios</h3>
+        <p className="text-muted-foreground">
+          Este é um modelo base. Para visualizar ou editar a ordem dos exercícios, 
+          acesse a edição do modelo ou as atribuições de alunos.
+        </p>
+        <Button variant="link" className="mt-2" asChild>
+           <Link to={`/workouts/${id}/edit`}>Configurar exercícios do modelo</Link>
+        </Button>
       </div>
     </div>
   );

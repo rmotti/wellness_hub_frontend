@@ -31,27 +31,30 @@ export default function StudentForm() {
   const { id } = useParams();
   const isEditing = !!id;
   
+  // Ajustado: Busca usando a propriedade 'id' e os novos campos
   const existingStudent = isEditing ? mockStudents.find(s => s.id === id) : null;
 
   const [formData, setFormData] = useState({
-    name: existingStudent?.name || '',
+    nome: existingStudent?.nome || '', // name -> nome
     email: existingStudent?.email || '',
-    phone: existingStudent?.phone || '',
-    birthDate: existingStudent?.birthDate || '',
-    goal: existingStudent?.goal || '',
-    status: existingStudent?.status || 'active',
-    notes: '',
+    telefone: existingStudent?.telefone || '', // phone -> telefone
+    objetivo: existingStudent?.objetivo || '', // goal -> objetivo
+    status: existingStudent?.status || 'Ativo', // active -> Ativo
+    observacoes: '', // notes -> observacoes (opcional conforme sua model)
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Simulação do payload que seria enviado ao backend
+    console.log("Payload para API:", formData);
+
     toast.success(isEditing ? 'Aluno atualizado com sucesso!' : 'Aluno cadastrado com sucesso!');
     navigate('/students');
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
@@ -68,7 +71,7 @@ export default function StudentForm() {
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Personal Info */}
+          {/* Informações Pessoais */}
           <Card>
             <CardHeader>
               <CardTitle>Informações Pessoais</CardTitle>
@@ -76,11 +79,11 @@ export default function StudentForm() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome completo *</Label>
+                <Label htmlFor="nome">Nome completo *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  id="nome"
+                  value={formData.nome}
+                  onChange={(e) => setFormData({...formData, nome: e.target.value})}
                   placeholder="Nome do aluno"
                   required
                 />
@@ -96,31 +99,20 @@ export default function StudentForm() {
                   required
                 />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="(00) 00000-0000"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate">Data de Nascimento</Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="telefone">Telefone *</Label>
+                <Input
+                  id="telefone"
+                  value={formData.telefone}
+                  onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                  placeholder="(00) 00000-0000"
+                  required
+                />
               </div>
             </CardContent>
           </Card>
 
-          {/* Training Info */}
+          {/* Informações de Treino */}
           <Card>
             <CardHeader>
               <CardTitle>Informações de Treino</CardTitle>
@@ -128,10 +120,10 @@ export default function StudentForm() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="goal">Objetivo *</Label>
+                <Label htmlFor="objetivo">Objetivo *</Label>
                 <Select 
-                  value={formData.goal} 
-                  onValueChange={(value) => setFormData({...formData, goal: value})}
+                  value={formData.objetivo} 
+                  onValueChange={(value) => setFormData({...formData, objetivo: value})}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o objetivo" />
@@ -149,24 +141,24 @@ export default function StudentForm() {
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={formData.status} 
-                  onValueChange={(value: 'active' | 'inactive') => setFormData({...formData, status: value})}
+                  onValueChange={(value: 'Ativo' | 'Inativo') => setFormData({...formData, status: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="Ativo">Ativo</SelectItem>
+                    <SelectItem value="Inativo">Inativo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes">Observações</Label>
+                <Label htmlFor="observacoes">Observações</Label>
                 <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  placeholder="Observações sobre o aluno, restrições, lesões..."
+                  id="observacoes"
+                  value={formData.observacoes}
+                  onChange={(e) => setFormData({...formData, observacoes: e.target.value})}
+                  placeholder="Restrições médicas, lesões ou observações gerais..."
                   rows={4}
                 />
               </div>
@@ -174,7 +166,6 @@ export default function StudentForm() {
           </Card>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Cancelar

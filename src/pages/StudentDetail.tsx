@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Mail,
   Phone,
-  Calendar,
   Target,
   Edit,
   TrendingUp,
@@ -25,19 +24,24 @@ export default function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Ajustado: Uso da interface Student atualizada (nome)
   const student = mockStudents.find(s => s.id === id);
 
+  // Ajustado: Filtros usando as novas chaves usuario_id
   const [measurements, setMeasurements] = useState<Measurement[]>(
-    mockMeasurements.filter(m => m.studentId === id)
+    mockMeasurements.filter(m => m.usuario_id === id)
   );
   const [assignments, setAssignments] = useState<Assignment[]>(
-    mockAssignments.filter(a => a.studentId === id)
+    mockAssignments.filter(a => a.usuario_id === id)
   );
 
   const [measurementDialogOpen, setMeasurementDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
-  const latestMeasurement = measurements[measurements.length - 1];
+  // Pega a medição mais recente baseada na data_medicao
+  const latestMeasurement = measurements.length > 0 
+    ? [...measurements].sort((a, b) => new Date(b.data_medicao).getTime() - new Date(a.data_medicao).getTime())[0]
+    : null;
 
   if (!student) {
     return (
@@ -50,17 +54,6 @@ export default function StudentDetail() {
     );
   }
 
-  const calculateAge = (birthDate: string) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   const handleSaveMeasurement = (measurement: Measurement) => {
     setMeasurements([...measurements, measurement]);
   };
@@ -71,7 +64,7 @@ export default function StudentDetail() {
 
   const handleFinishAssignment = (assignmentId: string) => {
     setAssignments(assignments.map(a =>
-      a.id === assignmentId ? { ...a, status: 'completed' as const } : a
+      a.id === assignmentId ? { ...a, status_treino: 'Finalizado' as const } : a
     ));
     toast.success('Ficha finalizada com sucesso!');
   };
@@ -87,17 +80,17 @@ export default function StudentDetail() {
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
               <span className="text-xl font-bold text-primary">
-                {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {student.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{student.name}</h1>
+              <h1 className="text-3xl font-bold">{student.nome}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
-                  {student.status === 'active' ? 'Ativo' : 'Inativo'}
+                <Badge variant={student.status === 'Ativo' ? 'default' : 'secondary'}>
+                  {student.status}
                 </Badge>
                 <span className="text-muted-foreground">•</span>
-                <span className="text-muted-foreground">{student.goal}</span>
+                <span className="text-muted-foreground">{student.objetivo}</span>
               </div>
             </div>
           </div>
@@ -140,16 +133,7 @@ export default function StudentDetail() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Telefone</p>
-                <p className="font-medium">{student.phone}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Idade</p>
-                <p className="font-medium">{calculateAge(student.birthDate)} anos</p>
+                <p className="font-medium">{student.telefone}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -158,7 +142,7 @@ export default function StudentDetail() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Objetivo</p>
-                <p className="font-medium">{student.goal}</p>
+                <p className="font-medium">{student.objetivo}</p>
               </div>
             </div>
           </CardContent>
@@ -170,7 +154,7 @@ export default function StudentDetail() {
             <div>
               <CardTitle className="text-lg">Última Avaliação</CardTitle>
               <CardDescription>
-                {latestMeasurement ? new Date(latestMeasurement.date).toLocaleDateString('pt-BR') : 'Sem avaliação'}
+                {latestMeasurement ? new Date(latestMeasurement.data_medicao).toLocaleDateString('pt-BR') : 'Sem avaliação'}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={() => setMeasurementDialogOpen(true)}>
@@ -183,19 +167,15 @@ export default function StudentDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Peso</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.weight} kg</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.peso} kg</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Altura</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.height} cm</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.altura} cm</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
-                  <p className="text-sm text-muted-foreground">% Gordura</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.bodyFat ?? '—'}%</p>
-                </div>
-                <div className="rounded-lg bg-muted p-3">
-                  <p className="text-sm text-muted-foreground">Massa Muscular</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.muscleMass ?? '—'} kg</p>
+                  <p className="text-sm text-muted-foreground">% Gordura (BF)</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.bf_percentual ?? '—'}%</p>
                 </div>
               </div>
             ) : (
@@ -235,14 +215,15 @@ export default function StudentDetail() {
                         <Dumbbell className="h-5 w-5 text-accent" />
                       </div>
                       <div>
-                        <p className="font-medium">{assignment.workoutName}</p>
+                        <p className="font-medium">Treino #{assignment.treino_id}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(assignment.startDate).toLocaleDateString('pt-BR')} - {new Date(assignment.endDate).toLocaleDateString('pt-BR')}
+                          {new Date(assignment.data_inicio).toLocaleDateString('pt-BR')} 
+                          {assignment.data_fim ? ` - ${new Date(assignment.data_fim).toLocaleDateString('pt-BR')}` : ''}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {assignment.status === 'active' && (
+                      {assignment.status_treino === 'Ativo' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -253,9 +234,9 @@ export default function StudentDetail() {
                         </Button>
                       )}
                       <Badge
-                        variant={assignment.status === 'active' ? 'default' : 'secondary'}
+                        variant={assignment.status_treino === 'Ativo' ? 'default' : 'secondary'}
                       >
-                        {assignment.status === 'active' ? 'Ativa' : 'Concluída'}
+                        {assignment.status_treino}
                       </Badge>
                     </div>
                   </div>
@@ -283,7 +264,7 @@ export default function StudentDetail() {
       />
       <AssignWorkoutDialog
         studentId={id!}
-        studentName={student.name}
+        studentName={student.nome}
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
         onSave={handleSaveAssignment}

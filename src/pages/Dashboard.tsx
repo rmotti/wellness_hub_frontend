@@ -41,6 +41,7 @@ const statCards = [
 ];
 
 export default function Dashboard() {
+  // Filtramos os dados mockados de acordo com as novas interfaces
   const recentStudents = mockStudents.slice(0, 4);
   const recentWorkouts = mockWorkouts.slice(0, 3);
 
@@ -125,16 +126,18 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <span className="text-sm font-semibold text-primary">
-                        {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        {/* Ajustado: Usa 'nome' em vez de 'name' */}
+                        {student.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{student.name}</p>
-                      <p className="text-sm text-muted-foreground">{student.goal}</p>
+                      {/* Ajustado: Campos 'nome' e 'objetivo' */}
+                      <p className="font-medium">{student.nome}</p>
+                      <p className="text-sm text-muted-foreground">{student.objetivo}</p>
                     </div>
                   </div>
-                  <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
-                    {student.status === 'active' ? 'Ativo' : 'Inativo'}
+                  <Badge variant={student.status === 'Ativo' ? 'default' : 'secondary'}>
+                    {student.status}
                   </Badge>
                 </div>
               ))}
@@ -165,16 +168,15 @@ export default function Dashboard() {
                       <Dumbbell className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <p className="font-medium">{workout.name}</p>
+                      {/* Ajustado: 'nome_treino' e tratamento seguro para array de exercícios */}
+                      <p className="font-medium">{workout.nome_treino}</p>
                       <p className="text-sm text-muted-foreground">
-                        {workout.days.length} treino(s)
+                        {workout.objetivo_treino}
                       </p>
                     </div>
                   </div>
-                  <Badge
-                    variant={workout.status === 'active' ? 'default' : 'outline'}
-                  >
-                    {workout.status === 'active' ? 'Ativo' : 'Rascunho'}
+                  <Badge variant="outline">
+                    Modelo
                   </Badge>
                 </div>
               ))}

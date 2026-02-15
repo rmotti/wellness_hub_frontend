@@ -9,7 +9,7 @@ interface LoginVariables {
 }
 
 interface RegisterVariables {
-  name: string;
+  nome: string;
   email: string;
   password: string;
 }
@@ -36,8 +36,8 @@ export function useRegister() {
   const { register } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ name, email, password }: RegisterVariables) => {
-      return await register(name, email, password);
+    mutationFn: async ({ nome, email, password }: RegisterVariables) => {
+      return await register(nome, email, password);
     },
     onError: (error) => {
       console.error("Erro ao tentar registrar:", error);
