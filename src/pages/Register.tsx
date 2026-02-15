@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Dumbbell, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Dumbbell, Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRegister } from '@/hooks/useAuthMutations'; // Hook criado anteriormente
+import { ErrorAlert } from '@/components/ui/error-alert'; // Componente de erro
 
 export default function Register() {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Estado local do formulário
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,9 +19,35 @@ export default function Register() {
     confirmPassword: '',
   });
 
+  // Estado para validações locais (ex: senhas não batem)
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Hook do React Query (Gerencia API, Loading e Erros de servidor)
+  const { mutate: handleRegister, isPending, isError, error, reset } = useRegister();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setValidationError(null); // Limpa erro local
+    reset(); // Limpa erro da API
+
+    // 1. Validação de Senhas
+    if (formData.password !== formData.confirmPassword) {
+      setValidationError("As senhas digitadas não coincidem.");
+      return;
+    }
+
+    // 2. Validação de tamanho (opcional, mas recomendada)
+    if (formData.password.length < 6) {
+      setValidationError("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+
+    // 3. Chama a API
+    handleRegister({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password
+    });
   };
 
   return (
@@ -60,7 +89,7 @@ export default function Register() {
       </div>
 
       {/* Right side - Register form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
@@ -90,6 +119,8 @@ export default function Register() {
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       className="pl-10"
+                      disabled={isPending} // Desabilita no loading
+                      required
                     />
                   </div>
                 </div>
@@ -104,6 +135,8 @@ export default function Register() {
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       className="pl-10"
+                      disabled={isPending}
+                      required
                     />
                   </div>
                 </div>
@@ -118,11 +151,14 @@ export default function Register() {
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       className="pl-10 pr-10"
+                      disabled={isPending}
+                      required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                      disabled={isPending}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -139,17 +175,44 @@ export default function Register() {
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                       className="pl-10"
+                      disabled={isPending}
+                      required
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full" size="lg">
-                  Criar conta
+
+                <Button type="submit" className="w-full" size="lg" disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    "Criar conta"
+                  )}
                 </Button>
+
+                {/* Bloco de Erro - Aparece se tiver erro de validação ou de API */}
+                {(validationError || isError) && (
+                  <div className="animate-in fade-in slide-in-from-top-2 pt-2">
+                    <ErrorAlert 
+                      triggerLabel="Erro no Cadastro"
+                      title="Não foi possível criar a conta"
+                      description={
+                        validationError || 
+                        (error as any)?.response?.data?.message || 
+                        "Ocorreu um erro ao conectar com o servidor. Tente novamente."
+                      }
+                      showTrigger={false}
+                      onRetry={() => handleSubmit({ preventDefault: () => {} } as any)}
+                    />
+                  </div>
+                )}
               </form>
 
               <div className="mt-6 text-center text-sm">
                 <span className="text-muted-foreground">Já tem uma conta? </span>
-                <Link to="/" className="text-primary font-medium hover:underline">
+                <Link to="/login" className="text-primary font-medium hover:underline">
                   Faça login
                 </Link>
               </div>
