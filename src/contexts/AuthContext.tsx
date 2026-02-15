@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (nome: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
 }
@@ -42,8 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     navigate('/dashboard');
   }, [navigate]);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const response = await authService.register({ name, email, password });
+  const register = useCallback(async (nome: string, email: string, password: string) => {
+    const response = await authService.register({ nome, email, password });
     setToken(response.token);
     setUser(response.user);
     navigate('/dashboard');

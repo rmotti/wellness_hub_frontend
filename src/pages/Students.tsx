@@ -6,7 +6,6 @@ import {
   MoreHorizontal, 
   Mail, 
   Phone, 
-  Calendar,
   Filter,
   Download
 } from 'lucide-react';
@@ -35,9 +34,12 @@ export default function Students() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  // Ajustado: Uso de 'nome' e 'email' conforme a interface Student
   const filteredStudents = students.filter((student) => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = student.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Ajustado: O filtro agora compara com 'Ativo' e 'Inativo'
     const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -85,8 +87,9 @@ export default function Students() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Ativos</SelectItem>
-                  <SelectItem value="inactive">Inativos</SelectItem>
+                  {/* Ajustado: Valores do Select batendo com o Status da interface */}
+                  <SelectItem value="Ativo">Ativos</SelectItem>
+                  <SelectItem value="Inativo">Inativos</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline">
@@ -118,7 +121,8 @@ export default function Students() {
                   <div className="col-span-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <span className="text-sm font-semibold text-primary">
-                        {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        {/* Ajustado: iniciais vindas de 'nome' */}
+                        {student.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
                       </span>
                     </div>
                     <div>
@@ -126,7 +130,7 @@ export default function Students() {
                         to={`/students/${student.id}`}
                         className="font-medium hover:text-primary transition-colors"
                       >
-                        {student.name}
+                        {student.nome}
                       </Link>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Mail className="h-3 w-3" />
@@ -137,15 +141,18 @@ export default function Students() {
                   <div className="col-span-2 flex items-center">
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3 text-muted-foreground" />
-                      {student.phone}
+                      {/* Ajustado: campo 'telefone' */}
+                      {student.telefone}
                     </div>
                   </div>
                   <div className="col-span-3 flex items-center">
-                    <span className="text-sm">{student.goal}</span>
+                    {/* Ajustado: campo 'objetivo' */}
+                    <span className="text-sm">{student.objetivo}</span>
                   </div>
                   <div className="col-span-2 flex items-center">
-                    <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
-                      {student.status === 'active' ? 'Ativo' : 'Inativo'}
+                    {/* Ajustado: Badge baseada no status 'Ativo' */}
+                    <Badge variant={student.status === 'Ativo' ? 'default' : 'secondary'}>
+                      {student.status}
                     </Badge>
                   </div>
                   <div className="col-span-1 flex items-center justify-end">

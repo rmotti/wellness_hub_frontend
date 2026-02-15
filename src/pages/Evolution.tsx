@@ -18,28 +18,22 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from 'recharts';
 
 export default function Evolution() {
   const [searchParams] = useSearchParams();
   const preselectedStudent = searchParams.get('student');
   const [selectedStudent, setSelectedStudent] = useState(preselectedStudent || '1');
-  const [metric, setMetric] = useState<'weight' | 'bodyFat' | 'muscleMass'>('weight');
+  const [metric, setMetric] = useState<'peso' | 'bf_percentual'>('peso');
 
   const student = mockStudents.find(s => s.id === selectedStudent);
-  const measurements = mockMeasurements.filter(m => m.studentId === selectedStudent);
+  const measurements = mockMeasurements.filter(m => m.usuario_id === selectedStudent);
 
   const chartData = measurements.map(m => ({
-    date: new Date(m.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
-    weight: m.weight,
-    bodyFat: m.bodyFat,
-    muscleMass: m.muscleMass,
-    chest: m.chest,
-    waist: m.waist,
-    arm: m.arm,
-    thigh: m.thigh,
+    date: new Date(m.data_medicao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+    peso: m.peso,
+    bf_percentual: m.bf_percentual,
   }));
 
   const firstMeasurement = measurements[0];
@@ -59,32 +53,18 @@ export default function Evolution() {
   const stats = [
     {
       label: 'Peso',
-      current: lastMeasurement?.weight,
+      current: lastMeasurement?.peso,
       unit: 'kg',
-      change: calculateChange(firstMeasurement?.weight, lastMeasurement?.weight),
-      goalTrend: student?.goal === 'Emagrecimento' ? 'down' : 'up'
+      change: calculateChange(firstMeasurement?.peso, lastMeasurement?.peso),
+      goalTrend: student?.objetivo === 'Emagrecimento' ? 'down' : 'up'
     },
     {
-      label: '% Gordura',
-      current: lastMeasurement?.bodyFat,
+      label: '% Gordura (BF)',
+      current: lastMeasurement?.bf_percentual,
       unit: '%',
-      change: calculateChange(firstMeasurement?.bodyFat, lastMeasurement?.bodyFat),
+      change: calculateChange(firstMeasurement?.bf_percentual, lastMeasurement?.bf_percentual),
       goalTrend: 'down'
-    },
-    {
-      label: 'Massa Muscular',
-      current: lastMeasurement?.muscleMass,
-      unit: 'kg',
-      change: calculateChange(firstMeasurement?.muscleMass, lastMeasurement?.muscleMass),
-      goalTrend: 'up'
-    },
-    {
-      label: 'Cintura',
-      current: lastMeasurement?.waist,
-      unit: 'cm',
-      change: calculateChange(firstMeasurement?.waist, lastMeasurement?.waist),
-      goalTrend: 'down'
-    },
+    }
   ];
 
   const getTrendIcon = (trend: string) => {
@@ -116,7 +96,7 @@ export default function Evolution() {
           <SelectContent>
             {mockStudents.map((s) => (
               <SelectItem key={s.id} value={s.id}>
-                {s.name}
+                {s.nome}
               </SelectItem>
             ))}
           </SelectContent>
@@ -129,13 +109,13 @@ export default function Evolution() {
           <CardContent className="flex items-center gap-4 py-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
               <span className="text-xl font-bold text-primary">
-                {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {student.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </span>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold">{student.name}</h2>
+              <h2 className="text-xl font-semibold">{student.nome}</h2>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Badge variant="secondary">{student.goal}</Badge>
+                <Badge variant="secondary">{student.objetivo}</Badge>
                 <span>•</span>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
@@ -156,7 +136,7 @@ export default function Evolution() {
       ) : (
         <>
           {/* Stats Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
             {stats.map((stat) => (
               <Card key={stat.label}>
                 <CardHeader className="pb-2">
@@ -186,16 +166,15 @@ export default function Evolution() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Evolução ao Longo do Tempo</CardTitle>
-                  <CardDescription>Visualize o progresso em diferentes métricas</CardDescription>
+                  <CardDescription>Visualize o progresso em peso e gordura corporal</CardDescription>
                 </div>
                 <Select value={metric} onValueChange={(v) => setMetric(v as typeof metric)}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="weight">Peso</SelectItem>
-                    <SelectItem value="bodyFat">% Gordura</SelectItem>
-                    <SelectItem value="muscleMass">Massa Muscular</SelectItem>
+                    <SelectItem value="peso">Peso</SelectItem>
+                    <SelectItem value="bf_percentual">% Gordura</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -236,72 +215,6 @@ export default function Evolution() {
             </CardContent>
           </Card>
 
-          {/* Body Measurements Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Medidas Corporais</CardTitle>
-              <CardDescription>Evolução das circunferências</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="date" 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: 'var(--radius)'
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      name="Peito"
-                      dataKey="chest"
-                      stroke="hsl(var(--chart-1))"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                    <Line
-                      type="monotone"
-                      name="Cintura"
-                      dataKey="waist"
-                      stroke="hsl(var(--chart-2))"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                    <Line
-                      type="monotone"
-                      name="Braço"
-                      dataKey="arm"
-                      stroke="hsl(var(--chart-3))"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                    <Line
-                      type="monotone"
-                      name="Coxa"
-                      dataKey="thigh"
-                      stroke="hsl(var(--chart-4))"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Measurements History */}
           <Card>
             <CardHeader>
@@ -315,27 +228,19 @@ export default function Evolution() {
                     <tr className="border-b text-left text-sm text-muted-foreground">
                       <th className="pb-3 font-medium">Data</th>
                       <th className="pb-3 font-medium">Peso</th>
-                      <th className="pb-3 font-medium">% Gordura</th>
-                      <th className="pb-3 font-medium">Massa Muscular</th>
-                      <th className="pb-3 font-medium">Peito</th>
-                      <th className="pb-3 font-medium">Cintura</th>
-                      <th className="pb-3 font-medium">Braço</th>
-                      <th className="pb-3 font-medium">Coxa</th>
+                      <th className="pb-3 font-medium">Altura</th>
+                      <th className="pb-3 font-medium">% Gordura (BF)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {measurements.slice().reverse().map((m, index) => (
+                    {measurements.slice().reverse().map((m) => (
                       <tr key={m.id} className="border-b last:border-0">
                         <td className="py-3 font-medium">
-                          {new Date(m.date).toLocaleDateString('pt-BR')}
+                          {new Date(m.data_medicao).toLocaleDateString('pt-BR')}
                         </td>
-                        <td className="py-3">{m.weight} kg</td>
-                        <td className="py-3">{m.bodyFat}%</td>
-                        <td className="py-3">{m.muscleMass} kg</td>
-                        <td className="py-3">{m.chest} cm</td>
-                        <td className="py-3">{m.waist} cm</td>
-                        <td className="py-3">{m.arm} cm</td>
-                        <td className="py-3">{m.thigh} cm</td>
+                        <td className="py-3">{m.peso} kg</td>
+                        <td className="py-3">{m.altura} cm</td>
+                        <td className="py-3">{m.bf_percentual}%</td>
                       </tr>
                     ))}
                   </tbody>

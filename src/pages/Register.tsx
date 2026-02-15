@@ -13,7 +13,7 @@ export default function Register() {
   
   // Estado local do formulário
   const [formData, setFormData] = useState({
-    name: '',
+    nome: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -44,7 +44,7 @@ export default function Register() {
 
     // 3. Chama a API
     handleRegister({
-      name: formData.name,
+      nome: formData.nome,
       email: formData.email,
       password: formData.password
     });
@@ -113,11 +113,11 @@ export default function Register() {
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      id="name"
+                      id="nome"
                       type="text"
                       placeholder="Seu nome"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      value={formData.nome}
+                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
                       className="pl-10"
                       disabled={isPending} // Desabilita no loading
                       required

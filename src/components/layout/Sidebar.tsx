@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext'; // 1. Importar o hook de autenticação
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -26,6 +27,17 @@ const menuItems = [
 export function Sidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth(); // 2. Pegar os dados do usuário e a função de logout
+
+  // Função para pegar as iniciais do nome
+  const getInitials = (nome: string) => {
+    return nome
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'PM';
+  };
 
   return (
     <aside 
@@ -90,25 +102,29 @@ export function Sidebar() {
         <div className="border-t border-sidebar-border p-4">
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
             <div className="h-10 w-10 shrink-0 rounded-full bg-sidebar-accent flex items-center justify-center">
-              <span className="text-sm font-semibold">PM</span>
+              {/* 3. Iniciais dinâmicas baseadas no nome do usuário */}
+              <span className="text-sm font-semibold">{getInitials(user?.nome || '')}</span>
             </div>
             {!collapsed && (
               <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-medium">Nutricionista</p>
-                <p className="truncate text-xs text-sidebar-foreground/60">admin@pmteam.com</p>
+                {/* 4. Nome e E-mail dinâmicos */}
+                <p className="truncate text-sm font-medium">{user?.nome || 'Usuário'}</p>
+                <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
               </div>
             )}
           </div>
-          <Link
-            to="/"
+          
+          {/* 5. Botão de Sair com a função logout */}
+          <button
+            onClick={logout}
             className={cn(
-              "mt-3 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors",
+              "mt-3 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-red-500/10 hover:text-red-500 transition-colors",
               collapsed && "justify-center px-0"
             )}
           >
             <LogOut className="h-5 w-5 shrink-0" />
             {!collapsed && <span>Sair</span>}
-          </Link>
+          </button>
         </div>
       </div>
     </aside>
