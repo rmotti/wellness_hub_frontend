@@ -76,3 +76,32 @@ export interface User {
   email: string;
   avatar?: string;
 }
+
+// API types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface DashboardStats {
+  totalStudents: number;
+  activeStudents: number;
+  totalWorkouts: number;
+  activeWorkouts: number;
+  totalExercises: number;
+  totalAssignments: number;
+  activeAssignments: number;
+  averageProgress: number;
+  newStudentsThisMonth: number;
+}
