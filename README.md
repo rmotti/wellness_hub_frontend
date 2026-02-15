@@ -1,73 +1,79 @@
-# Welcome to your Lovable project
+PM Team - Wellness Hub (Frontend)
+Este é o módulo de interface do usuário do PM Team, um MVP desenvolvido para nutricionistas e personal trainers gerenciarem seus alunos, prescreverem treinos e acompanharem a evolução física de forma centralizada. O projeto foca em consistência de dados, utilizando interfaces TypeScript rigorosamente sincronizadas com as models do backend.
 
-## Project info
+🚀 Tecnologias e Bibliotecas
+React 18 + TypeScript: Desenvolvimento de componentes tipados para maior segurança e produtividade.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Vite: Tooling de build ultrarrápido para otimização do fluxo de desenvolvimento.
 
-## How can I edit this code?
+TanStack Query (React Query): Gerenciamento de cache e sincronização assíncrona com a API.
 
-There are several ways of editing your application.
+Shadcn/UI + Tailwind CSS: Sistema de design moderno, responsivo e baseado em componentes acessíveis.
 
-**Use Lovable**
+Recharts: Visualização analítica para acompanhamento de peso e percentual de gordura.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Lucide React: Biblioteca de ícones consistente em toda a plataforma.
 
-Changes made via Lovable will be committed automatically to this repo.
+Sonner: Sistema de notificações (toast) para feedback imediato das ações do usuário.
 
-**Use your preferred IDE**
+🏗️ Arquitetura do Projeto
+O frontend segue uma estrutura modular para facilitar a manutenção e escalabilidade:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Plaintext
+src/
+├── components/     # Componentes compartilhados e diálogos (Measurement/Assignment)
+├── context/        # Contextos globais, incluindo AuthContext para gestão de JWT
+├── data/           # MockData para testes de interface e prototipagem
+├── hooks/          # Hooks customizados (useAuthMutations, useStudents, etc.)
+├── lib/            # Utilitários e configurações (Axios Instance, Tailwind Merge)
+├── pages/          # Páginas principais (Dashboard, Alunos, Treinos, Evolução)
+├── services/       # Camada de comunicação com endpoints da API
+└── types/          # Interfaces sincronizadas com o banco de dados (Sequelize)
+🔐 Funcionalidades Implementadas
+1. Autenticação e Sessão
+Gestão de JWT: Login e registro de usuários com persistência de sessão via LocalStorage.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Rota Protegida: Middleware de interface que impede acesso a áreas logadas sem um token válido.
 
-Follow these steps:
+Perfil Dinâmico: Recuperação automática de dados do usuário via endpoint /auth/me para manter o estado global.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Gestão de Alunos
+CRUD de Alunos: Cadastro, edição e listagem com filtros dinâmicos por nome e status.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Detalhamento: Página centralizadora com informações de contato, última avaliação e histórico de treinos.
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Prescrição de Treinos
+Catálogo de Exercícios: Gestão de exercícios com suporte a grupos musculares e links para demonstração em vídeo.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Modelos Base: Criação de templates de treino reutilizáveis com múltiplos dias (Treino A, B, C).
+
+Atribuição Dinâmica: Vínculo de modelos a alunos específicos com definição de séries, repetições e tempo de descanso.
+
+4. Avaliação Física e Evolução
+Métricas Corporais: Registro de peso, altura e percentual de gordura (BF).
+
+Análise Visual: Gráficos de linha dinâmicos que mostram a tendência de progresso do aluno ao longo do tempo.
+
+Status de Objetivo: Comparação automática entre as mudanças físicas e o objetivo principal do aluno (Emagrecimento vs. Hipertrofia).
+
+🛠️ Configuração do Ambiente
+Clone o repositório:
+
+Bash
+git clone https://github.com/seu-usuario/pm-team-frontend.git
+Instale as dependências:
+
+Bash
+npm install
+Variáveis de Ambiente:
+Crie um arquivo .env na raiz do projeto:
+
+Snippet de código
+VITE_API_URL=http://localhost:3001
+Execução em Desenvolvimento:
+
+Bash
 npm run dev
-```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Desenvolvido por Rodrigo Santana Motti
+Graduando em Engenharia de Computação
