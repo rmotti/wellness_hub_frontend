@@ -13,6 +13,8 @@ import StudentDetail from "./pages/StudentDetail";
 import Workouts from "./pages/Workouts";
 import WorkoutForm from "./pages/WorkoutForm";
 import WorkoutDetail from "./pages/WorkoutDetail";
+import Exercises from "./pages/Exercises";
+import ExerciseForm from "./pages/ExerciseForm";
 import Evolution from "./pages/Evolution";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -41,6 +43,9 @@ const App = () => (
             <Route path="/workouts/new" element={<WorkoutForm />} />
             <Route path="/workouts/:id" element={<WorkoutDetail />} />
             <Route path="/workouts/:id/edit" element={<WorkoutForm />} />
+            <Route path="/exercises" element={<Exercises />} />
+            <Route path="/exercises/new" element={<ExerciseForm />} />
+            <Route path="/exercises/:id/edit" element={<ExerciseForm />} />
             <Route path="/evolution" element={<Evolution />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

@@ -1,20 +1,20 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Edit, Calendar, User, Dumbbell, Clock, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Edit, Dumbbell, Clock, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockWorkoutPlans } from '@/data/mockData';
+import { mockWorkouts } from '@/data/mockData';
 
 export default function WorkoutDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const workout = mockWorkoutPlans.find(w => w.id === id);
+
+  const workout = mockWorkouts.find(w => w.id === id);
 
   if (!workout) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-muted-foreground">Ficha não encontrada</p>
+        <p className="text-muted-foreground">Modelo não encontrado</p>
         <Button className="mt-4" onClick={() => navigate('/workouts')}>
           Voltar para lista
         </Button>
@@ -33,28 +33,15 @@ export default function WorkoutDetail() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">{workout.name}</h1>
-              <Badge 
-                variant={
-                  workout.status === 'active' ? 'default' : 
-                  workout.status === 'completed' ? 'secondary' : 'outline'
-                }
+              <Badge
+                variant={workout.status === 'active' ? 'default' : 'outline'}
               >
-                {workout.status === 'active' ? 'Ativa' : 
-                 workout.status === 'completed' ? 'Concluída' : 'Rascunho'}
+                {workout.status === 'active' ? 'Ativo' : 'Rascunho'}
               </Badge>
             </div>
-            <div className="flex items-center gap-4 mt-1 text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <User className="h-4 w-4" />
-                <span>{workout.studentName}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {new Date(workout.startDate).toLocaleDateString('pt-BR')} - {new Date(workout.endDate).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </div>
+            <p className="mt-1 text-muted-foreground">
+              {workout.days.length} treino(s) • Criado em {new Date(workout.createdAt).toLocaleDateString('pt-BR')}
+            </p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -94,7 +81,7 @@ export default function WorkoutDetail() {
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">{exercise.name}</p>
+                      <p className="font-medium">{exercise.exerciseName}</p>
                       <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
                         <span>{exercise.sets} séries</span>
                         <span>×</span>

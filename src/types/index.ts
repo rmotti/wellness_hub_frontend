@@ -28,27 +28,45 @@ export interface Measurement {
 export interface Exercise {
   id: string;
   name: string;
+  muscleGroup?: string;
+  equipment?: string;
+  description?: string;
+}
+
+export interface WorkoutExercise {
+  id: string;
+  exerciseId: string;
+  exerciseName: string;
   sets: number;
   reps: string;
   rest: string;
+  order: number;
   notes?: string;
 }
 
 export interface WorkoutDay {
   id: string;
   name: string;
-  exercises: Exercise[];
+  exercises: WorkoutExercise[];
 }
 
-export interface WorkoutPlan {
+export interface Workout {
+  id: string;
+  name: string;
+  days: WorkoutDay[];
+  status: 'active' | 'draft';
+  createdAt: string;
+}
+
+export interface Assignment {
   id: string;
   studentId: string;
   studentName: string;
-  name: string;
+  workoutId: string;
+  workoutName: string;
   startDate: string;
   endDate: string;
-  days: WorkoutDay[];
-  status: 'active' | 'completed' | 'draft';
+  status: 'active' | 'completed';
   createdAt: string;
 }
 

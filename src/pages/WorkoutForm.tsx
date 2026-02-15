@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,25 +18,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { mockStudents, mockWorkoutPlans } from '@/data/mockData';
+import { mockWorkouts, mockExercises } from '@/data/mockData';
 import { toast } from 'sonner';
-import { Exercise, WorkoutDay } from '@/types';
+import { WorkoutExercise, WorkoutDay } from '@/types';
+import { ExerciseCombobox } from '@/components/ExerciseCombobox';
 
 export default function WorkoutForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
   const isEditing = !!id;
-  
-  const existingWorkout = isEditing ? mockWorkoutPlans.find(w => w.id === id) : null;
-  const preselectedStudent = searchParams.get('student');
+
+  const existingWorkout = isEditing ? mockWorkouts.find(w => w.id === id) : null;
 
   const [formData, setFormData] = useState({
     name: existingWorkout?.name || '',
-    studentId: existingWorkout?.studentId || preselectedStudent || '',
-    startDate: existingWorkout?.startDate || '',
-    endDate: existingWorkout?.endDate || '',
-    status: existingWorkout?.status || 'draft',
+    status: existingWorkout?.status || 'draft' as 'active' | 'draft',
   });
 
   const [days, setDays] = useState<WorkoutDay[]>(
@@ -45,7 +41,7 @@ export default function WorkoutForm() {
         id: '1',
         name: 'Treino A',
         exercises: [
-          { id: '1', name: '', sets: 3, reps: '10-12', rest: '60s' }
+          { id: '1', exerciseId: '', exerciseName: '', sets: 3, reps: '10-12', rest: '60s', order: 1 }
         ]
       }
     ]
@@ -55,7 +51,7 @@ export default function WorkoutForm() {
     const newDay: WorkoutDay = {
       id: Date.now().toString(),
       name: `Treino ${String.fromCharCode(65 + days.length)}`,
-      exercises: [{ id: Date.now().toString(), name: '', sets: 3, reps: '10-12', rest: '60s' }]
+      exercises: [{ id: Date.now().toString(), exerciseId: '', exerciseName: '', sets: 3, reps: '10-12', rest: '60s', order: 1 }]
     };
     setDays([...days, newDay]);
   };
@@ -73,7 +69,7 @@ export default function WorkoutForm() {
           ...day,
           exercises: [
             ...day.exercises,
-            { id: Date.now().toString(), name: '', sets: 3, reps: '10-12', rest: '60s' }
+            { id: Date.now().toString(), exerciseId: '', exerciseName: '', sets: 3, reps: '10-12', rest: '60s', order: day.exercises.length + 1 }
           ]
         };
       }
@@ -93,12 +89,26 @@ export default function WorkoutForm() {
     }));
   };
 
-  const updateExercise = (dayId: string, exerciseId: string, field: keyof Exercise, value: string | number) => {
+  const handleExerciseSelect = (dayId: string, workoutExerciseId: string, exerciseId: string, exerciseName: string) => {
     setDays(days.map(day => {
       if (day.id === dayId) {
         return {
           ...day,
-          exercises: day.exercises.map(e => 
+          exercises: day.exercises.map(e =>
+            e.id === workoutExerciseId ? { ...e, exerciseId, exerciseName } : e
+          )
+        };
+      }
+      return day;
+    }));
+  };
+
+  const updateExercise = (dayId: string, exerciseId: string, field: keyof WorkoutExercise, value: string | number) => {
+    setDays(days.map(day => {
+      if (day.id === dayId) {
+        return {
+          ...day,
+          exercises: day.exercises.map(e =>
             e.id === exerciseId ? { ...e, [field]: value } : e
           )
         };
@@ -108,14 +118,14 @@ export default function WorkoutForm() {
   };
 
   const updateDayName = (dayId: string, name: string) => {
-    setDays(days.map(day => 
+    setDays(days.map(day =>
       day.id === dayId ? { ...day, name } : day
     ));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(isEditing ? 'Ficha atualizada com sucesso!' : 'Ficha criada com sucesso!');
+    toast.success(isEditing ? 'Modelo atualizado com sucesso!' : 'Modelo criado com sucesso!');
     navigate('/workouts');
   };
 
@@ -128,10 +138,10 @@ export default function WorkoutForm() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">
-            {isEditing ? 'Editar Ficha' : 'Nova Ficha de Treino'}
+            {isEditing ? 'Editar Modelo' : 'Novo Modelo de Treino'}
           </h1>
           <p className="text-muted-foreground">
-            {isEditing ? 'Atualize os exercícios da ficha' : 'Monte a ficha de treino do aluno'}
+            {isEditing ? 'Atualize os exercícios do modelo' : 'Monte um modelo de treino reutilizável'}
           </p>
         </div>
       </div>
@@ -140,13 +150,13 @@ export default function WorkoutForm() {
         {/* Basic Info */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Informações da Ficha</CardTitle>
+            <CardTitle>Informações do Modelo</CardTitle>
             <CardDescription>Dados gerais do treino</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2 lg:col-span-2">
-                <Label htmlFor="name">Nome da Ficha *</Label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Modelo *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -155,55 +165,18 @@ export default function WorkoutForm() {
                   required
                 />
               </div>
-              <div className="space-y-2 lg:col-span-2">
-                <Label htmlFor="student">Aluno *</Label>
-                <Select 
-                  value={formData.studentId} 
-                  onValueChange={(value) => setFormData({...formData, studentId: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o aluno" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockStudents.map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Data de Início</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endDate">Data de Término</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value: 'active' | 'completed' | 'draft') => setFormData({...formData, status: value})}
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: 'active' | 'draft') => setFormData({...formData, status: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Rascunho</SelectItem>
-                    <SelectItem value="active">Ativa</SelectItem>
-                    <SelectItem value="completed">Concluída</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -222,7 +195,7 @@ export default function WorkoutForm() {
           </div>
 
           <Accordion type="multiple" defaultValue={days.map(d => d.id)} className="space-y-4">
-            {days.map((day, dayIndex) => (
+            {days.map((day) => (
               <AccordionItem key={day.id} value={day.id} className="border rounded-lg">
                 <AccordionTrigger className="px-4 hover:no-underline">
                   <div className="flex items-center gap-3">
@@ -256,10 +229,10 @@ export default function WorkoutForm() {
                     {day.exercises.map((exercise) => (
                       <div key={exercise.id} className="grid grid-cols-12 gap-2">
                         <div className="col-span-5">
-                          <Input
-                            value={exercise.name}
-                            onChange={(e) => updateExercise(day.id, exercise.id, 'name', e.target.value)}
-                            placeholder="Nome do exercício"
+                          <ExerciseCombobox
+                            exercises={mockExercises}
+                            value={exercise.exerciseId}
+                            onSelect={(exId, exName) => handleExerciseSelect(day.id, exercise.id, exId, exName)}
                           />
                         </div>
                         <div className="col-span-2">
@@ -335,7 +308,7 @@ export default function WorkoutForm() {
           </Button>
           <Button type="submit">
             <Save className="mr-2 h-4 w-4" />
-            {isEditing ? 'Salvar alterações' : 'Criar ficha'}
+            {isEditing ? 'Salvar alterações' : 'Criar modelo'}
           </Button>
         </div>
       </form>
