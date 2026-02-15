@@ -1,25 +1,22 @@
-PM Team - Wellness Hub (Frontend)
-Este é o módulo de interface do usuário do PM Team, um MVP desenvolvido para nutricionistas e personal trainers gerenciarem seus alunos, prescreverem treinos e acompanharem a evolução física de forma centralizada. O projeto foca em consistência de dados, utilizando interfaces TypeScript rigorosamente sincronizadas com as models do backend.
+# PM Team - Wellness Hub (Frontend)
 
-🚀 Tecnologias e Bibliotecas
-React 18 + TypeScript: Desenvolvimento de componentes tipados para maior segurança e produtividade.
+Este é o módulo de interface do usuário do **PM Team**, um MVP desenvolvido para nutricionistas e personal trainers gerenciarem seus alunos, prescreverem treinos e acompanharem a evolução física de forma centralizada. O projeto foca em consistência de dados, utilizando interfaces TypeScript rigorosamente sincronizadas com as models do backend.
 
-Vite: Tooling de build ultrarrápido para otimização do fluxo de desenvolvimento.
+## 🚀 Tecnologias e Bibliotecas
 
-TanStack Query (React Query): Gerenciamento de cache e sincronização assíncrona com a API.
+* **React 18 + TypeScript**: Desenvolvimento de componentes tipados para maior segurança e produtividade.
+* **Vite**: Tooling de build ultrarrápido para otimização do fluxo de desenvolvimento.
+* **TanStack Query (React Query)**: Gerenciamento de cache e sincronização assíncrona com a API.
+* **Shadcn/UI + Tailwind CSS**: Sistema de design moderno, responsivo e baseado em componentes acessíveis.
+* **Recharts**: Visualização analítica para acompanhamento de peso e percentual de gordura.
+* **Lucide React**: Biblioteca de ícones consistente em toda a plataforma.
+* **Sonner**: Sistema de notificações (toast) para feedback imediato das ações do usuário.
 
-Shadcn/UI + Tailwind CSS: Sistema de design moderno, responsivo e baseado em componentes acessíveis.
+## 🏗️ Arquitetura do Projeto
 
-Recharts: Visualização analítica para acompanhamento de peso e percentual de gordura.
-
-Lucide React: Biblioteca de ícones consistente em toda a plataforma.
-
-Sonner: Sistema de notificações (toast) para feedback imediato das ações do usuário.
-
-🏗️ Arquitetura do Projeto
 O frontend segue uma estrutura modular para facilitar a manutenção e escalabilidade:
 
-Plaintext
+```text
 src/
 ├── components/     # Componentes compartilhados e diálogos (Measurement/Assignment)
 ├── context/        # Contextos globais, incluindo AuthContext para gestão de JWT
@@ -60,7 +57,7 @@ Status de Objetivo: Comparação automática entre as mudanças físicas e o obj
 Clone o repositório:
 
 Bash
-git clone https://github.com/seu-usuario/pm-team-frontend.git
+git clone [https://github.com/seu-usuario/pm-team-frontend.git](https://github.com/seu-usuario/pm-team-frontend.git)
 Instale as dependências:
 
 Bash
@@ -74,6 +71,3 @@ Execução em Desenvolvimento:
 
 Bash
 npm run dev
-
-Desenvolvido por Rodrigo Santana Motti
-Graduando em Engenharia de Computação
