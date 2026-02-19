@@ -18,15 +18,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { mockWorkouts } from '@/data/mockData';
-import { Assignment } from '@/types';
+import { useWorkouts } from '@/hooks/api/useWorkouts';
+import { useAssignWorkout } from '@/hooks/api/useAssignments';
 
 interface AssignWorkoutDialogProps {
   studentId: string;
   studentName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (assignment: Assignment) => void;
 }
 
 export function AssignWorkoutDialog({
@@ -34,39 +33,38 @@ export function AssignWorkoutDialog({
   studentName,
   open,
   onOpenChange,
-  onSave,
 }: AssignWorkoutDialogProps) {
   const [formData, setFormData] = useState({
-    workoutId: '',
-    startDate: '',
-    endDate: '',
+    treino_id: '',
+    data_inicio: '',
+    data_fim: '',
   });
 
-  const activeWorkouts = mockWorkouts.filter(w => w.status === 'active');
+  const { data: workouts = [] } = useWorkouts();
+  const assignWorkout = useAssignWorkout();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const selectedWorkout = mockWorkouts.find(w => w.id === formData.workoutId);
-    if (!selectedWorkout) return;
-
-    const assignment: Assignment = {
-      id: Date.now().toString(),
-      studentId,
-      studentName,
-      workoutId: formData.workoutId,
-      workoutName: selectedWorkout.name,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      status: 'active',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-
-    onSave(assignment);
-    toast.success('Treino atribuído com sucesso!');
-    onOpenChange(false);
-
-    setFormData({ workoutId: '', startDate: '', endDate: '' });
+    assignWorkout.mutate(
+      {
+        usuario_id: studentId,
+        treino_id: formData.treino_id,
+        data_inicio: formData.data_inicio,
+        data_fim: formData.data_fim || undefined,
+        status_treino: 'Ativo',
+      },
+      {
+        onSuccess: () => {
+          toast.success('Treino atribuído com sucesso!');
+          onOpenChange(false);
+          setFormData({ treino_id: '', data_inicio: '', data_fim: '' });
+        },
+        onError: () => {
+          toast.error('Erro ao atribuir treino.');
+        },
+      }
+    );
   };
 
   return (
@@ -83,16 +81,16 @@ export function AssignWorkoutDialog({
             <div className="space-y-2">
               <Label htmlFor="a-workout">Modelo de Treino *</Label>
               <Select
-                value={formData.workoutId}
-                onValueChange={(value) => setFormData({ ...formData, workoutId: value })}
+                value={formData.treino_id}
+                onValueChange={(value) => setFormData({ ...formData, treino_id: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o treino" />
                 </SelectTrigger>
                 <SelectContent>
-                  {activeWorkouts.map((workout) => (
+                  {workouts.map((workout) => (
                     <SelectItem key={workout.id} value={workout.id}>
-                      {workout.name}
+                      {workout.nome_treino}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -104,19 +102,18 @@ export function AssignWorkoutDialog({
                 <Input
                   id="a-startDate"
                   type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  value={formData.data_inicio}
+                  onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="a-endDate">Data de Término *</Label>
+                <Label htmlFor="a-endDate">Data de Término</Label>
                 <Input
                   id="a-endDate"
                   type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  required
+                  value={formData.data_fim}
+                  onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
                 />
               </div>
             </div>
@@ -125,8 +122,8 @@ export function AssignWorkoutDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!formData.workoutId}>
-              Atribuir
+            <Button type="submit" disabled={!formData.treino_id || assignWorkout.isPending}>
+              {assignWorkout.isPending ? 'Atribuindo...' : 'Atribuir'}
             </Button>
           </DialogFooter>
         </form>

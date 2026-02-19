@@ -1,4 +1,4 @@
-import { Student, Measurement, Exercise, Workout, Assignment } from '@/types';
+/*import { Student, Measurement, Exercise, Workout, Assignment } from '@/types';
 
 export const mockStudents: Student[] = [
   {
@@ -120,4 +120,4 @@ export const dashboardStats = {
   activeAssignments: 2,
   averageProgress: 78,
   newStudentsThisMonth: 2,
-};
+};*/

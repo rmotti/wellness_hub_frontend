@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
+import { 
   Search,
   Plus,
-  MoreHorizontal,
+  Dumbbell,
   Filter,
-  Dumbbell
+  MoreHorizontal,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,38 +25,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockExercises } from '@/data/mockData';
-import { Exercise } from '@/types';
+// Hooks Reais
+import { useExercises, useDeleteExercise } from '@/hooks/api/useExercises';
+import { toast } from 'sonner';
+
+const muscleGroups = [
+  'Peito',
+  'Costas',
+  'Pernas',
+  'Ombros',
+  'Braços',
+  'Abdômen',
+  'Cardio',
+  'Outros'
+];
 
 export default function Exercises() {
-  const [exercises, setExercises] = useState<Exercise[]>(mockExercises);
   const [searchTerm, setSearchTerm] = useState('');
-  const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>('all');
+  const [groupFilter, setGroupFilter] = useState<string>('all');
 
-  // Ajustado: Uso da chave 'grupo_muscular' conforme a interface Exercise
-  const muscleGroups = [...new Set(mockExercises.map(e => e.grupo_muscular).filter(Boolean))] as string[];
+  // 1. Buscando dados da API
+  const { data: exercises = [], isLoading, isError } = useExercises();
+  const deleteExercise = useDeleteExercise();
 
+  // 2. Filtragem no Frontend
   const filteredExercises = exercises.filter((exercise) => {
-    // Ajustado: Busca agora utiliza 'nome' e 'grupo_muscular'
-    const matchesSearch = exercise.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (exercise.grupo_muscular || '').toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesGroup = muscleGroupFilter === 'all' || exercise.grupo_muscular === muscleGroupFilter;
+    // Ajuste: usando 'nome' e 'grupo_muscular' conforme backend
+    const matchesSearch = exercise.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesGroup = groupFilter === 'all' || exercise.grupo_muscular === groupFilter;
     return matchesSearch && matchesGroup;
   });
 
   const handleDelete = (id: string) => {
-    setExercises(exercises.filter(e => e.id !== id));
+    if (confirm('Tem certeza que deseja excluir este exercício?')) {
+      deleteExercise.mutate(id, {
+        onSuccess: () => toast.success('Exercício removido com sucesso!'),
+        onError: () => toast.error('Erro ao remover exercício.')
+      });
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Exercícios</h1>
+          <h1 className="text-3xl font-bold">Catálogo de Exercícios</h1>
           <p className="text-muted-foreground">
-            Gerencie seu catálogo de exercícios
+            Gerencie a biblioteca de exercícios disponíveis
           </p>
         </div>
         <Button asChild>
@@ -66,7 +82,6 @@ export default function Exercises() {
         </Button>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -80,15 +95,17 @@ export default function Exercises() {
               />
             </div>
             <div className="flex gap-3">
-              <Select value={muscleGroupFilter} onValueChange={setMuscleGroupFilter}>
+              <Select value={groupFilter} onValueChange={setGroupFilter}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Grupo Muscular" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">Todos os Grupos</SelectItem>
                   {muscleGroups.map((group) => (
-                    <SelectItem key={group} value={group}>{group}</SelectItem>
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -98,52 +115,56 @@ export default function Exercises() {
         <CardContent>
           <div className="rounded-lg border">
             <div className="grid grid-cols-12 gap-4 border-b bg-muted/50 p-4 text-sm font-medium text-muted-foreground">
-              <div className="col-span-5">Exercício</div>
-              <div className="col-span-4">Grupo Muscular</div>
-              <div className="col-span-3">Ações</div>
+              <div className="col-span-6">Exercício</div>
+              <div className="col-span-5">Grupo Muscular</div>
+              <div className="col-span-1"></div>
             </div>
-            {filteredExercises.length === 0 ? (
+
+            {isLoading ? (
+              <div className="flex h-40 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredExercises.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
-                Nenhum exercício encontrado
+                {isError ? 'Erro ao carregar exercícios.' : 'Nenhum exercício encontrado.'}
               </div>
             ) : (
               filteredExercises.map((exercise) => (
                 <div
                   key={exercise.id}
-                  className="grid grid-cols-12 gap-4 border-b p-4 last:border-0 hover:bg-muted/30 transition-colors"
+                  className="grid grid-cols-12 gap-4 border-b p-4 last:border-0 hover:bg-muted/30 transition-colors items-center"
                 >
-                  <div className="col-span-5 flex items-center gap-3">
+                  <div className="col-span-6 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <Dumbbell className="h-5 w-5 text-primary" />
                     </div>
-                    {/* Ajustado: campo 'nome' */}
-                    <span className="font-medium">{exercise.nome}</span>
+                    <div>
+                      <p className="font-medium">{exercise.nome}</p>
+                      {exercise.descricao && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {exercise.descricao}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="col-span-4 flex items-center">
-                    {/* Ajustado: campo 'grupo_muscular' */}
-                    {exercise.grupo_muscular && (
-                      <Badge variant="secondary">{exercise.grupo_muscular}</Badge>
-                    )}
+                  <div className="col-span-5">
+                    <Badge variant="secondary">
+                      {exercise.grupo_muscular}
+                    </Badge>
                   </div>
-                  <div className="col-span-3 flex items-center justify-end">
-                    {/* Link para vídeo se existir na interface */}
-                    {exercise.link_video && (
-                       <Button variant="ghost" size="sm" className="mr-2" asChild>
-                          <a href={exercise.link_video} target="_blank" rel="noopener noreferrer">Ver vídeo</a>
-                       </Button>
-                    )}
+                  <div className="col-span-1 flex justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" disabled={deleteExercise.isPending}>
+                          {deleteExercise.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : <MoreHorizontal className="h-4 w-4" />}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link to={`/exercises/${exercise.id}/edit`}>Editar</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive"
                           onClick={() => handleDelete(exercise.id)}
                         >
                           Excluir

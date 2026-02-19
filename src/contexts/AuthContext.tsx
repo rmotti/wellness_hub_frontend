@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate]);
 
   const register = useCallback(async (nome: string, email: string, password: string) => {
-    const response = await authService.register({ nome, email, password });
+    const response = await authService.register({ nome, email, password, role: 'ADMIN' });
     setToken(response.token);
     setUser(response.user);
     navigate('/dashboard');

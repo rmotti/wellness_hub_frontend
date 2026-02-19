@@ -10,7 +10,7 @@ export const studentService = {
     return api.get(`/students/${id}`).then((res) => res.data);
   },
 
-  create(data: Omit<Student, 'id' | 'createdAt'>): Promise<Student> {
+  create(data: Omit<Student, 'id'> & { password: string }): Promise<Student> {
     return api.post('/students', data).then((res) => res.data);
   },
 

@@ -6,8 +6,9 @@ import {
   MoreHorizontal, 
   Mail, 
   Phone, 
-  Filter,
-  Download
+  Filter, 
+  Download,
+  Loader2 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,26 +27,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockStudents } from '@/data/mockData';
-import { Student } from '@/types';
+// Importação dos Hooks reais
+import { useStudents, useDeleteStudent } from '@/hooks/api/useStudents';
 
 export default function Students() {
-  const [students, setStudents] = useState<Student[]>(mockStudents);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Ajustado: Uso de 'nome' e 'email' conforme a interface Student
+  // 1. Hooks de Dados e Mutação
+  const { data: students = [], isLoading, isError } = useStudents();
+  const deleteStudent = useDeleteStudent();
+
+  // 2. Filtragem no Frontend (já que a lista vem completa)
   const filteredStudents = students.filter((student) => {
     const matchesSearch = student.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
+                          student.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Ajustado: O filtro agora compara com 'Ativo' e 'Inativo'
     const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const handleDelete = (id: string) => {
-    setStudents(students.filter(s => s.id !== id));
+    if (confirm('Tem certeza que deseja excluir este aluno?')) {
+      deleteStudent.mutate(id);
+    }
   };
 
   return (
@@ -87,15 +92,10 @@ export default function Students() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  {/* Ajustado: Valores do Select batendo com o Status da interface */}
                   <SelectItem value="Ativo">Ativos</SelectItem>
                   <SelectItem value="Inativo">Inativos</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
             </div>
           </div>
         </CardHeader>
@@ -108,9 +108,15 @@ export default function Students() {
               <div className="col-span-2">Status</div>
               <div className="col-span-1"></div>
             </div>
-            {filteredStudents.length === 0 ? (
+
+            {/* Estado de Carregamento */}
+            {isLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredStudents.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
-                Nenhum aluno encontrado
+                {isError ? 'Erro ao carregar alunos.' : 'Nenhum aluno encontrado'}
               </div>
             ) : (
               filteredStudents.map((student) => (
@@ -121,8 +127,7 @@ export default function Students() {
                   <div className="col-span-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <span className="text-sm font-semibold text-primary">
-                        {/* Ajustado: iniciais vindas de 'nome' */}
-                        {student.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        {student.nome.substring(0, 2).toUpperCase()}
                       </span>
                     </div>
                     <div>
@@ -141,16 +146,13 @@ export default function Students() {
                   <div className="col-span-2 flex items-center">
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3 text-muted-foreground" />
-                      {/* Ajustado: campo 'telefone' */}
                       {student.telefone}
                     </div>
                   </div>
                   <div className="col-span-3 flex items-center">
-                    {/* Ajustado: campo 'objetivo' */}
                     <span className="text-sm">{student.objetivo}</span>
                   </div>
                   <div className="col-span-2 flex items-center">
-                    {/* Ajustado: Badge baseada no status 'Ativo' */}
                     <Badge variant={student.status === 'Ativo' ? 'default' : 'secondary'}>
                       {student.status}
                     </Badge>
@@ -158,7 +160,7 @@ export default function Students() {
                   <div className="col-span-1 flex items-center justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" disabled={deleteStudent.isPending}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -173,7 +175,7 @@ export default function Students() {
                           <Link to={`/evolution?student=${student.id}`}>Ver evolução</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="text-destructive"
+                          className="text-destructive focus:text-destructive"
                           onClick={() => handleDelete(student.id)}
                         >
                           Excluir

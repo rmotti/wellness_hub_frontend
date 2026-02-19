@@ -26,3 +26,6 @@ dist-ssr
 # envs
 .env
 .env.local
+
+#apoio para IA
+ai-context.json

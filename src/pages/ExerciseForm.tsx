@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Video } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,18 +13,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { mockExercises } from '@/data/mockData';
-import { toast } from 'sonner';
+// Hooks Reais
+import { useExercise, useCreateExercise, useUpdateExercise } from '@/hooks/api/useExercises';
 
 const muscleGroups = [
   'Peito',
   'Costas',
-  'Bíceps',
-  'Tríceps',
-  'Ombros',
   'Pernas',
-  'Core',
-  'Full body',
+  'Ombros',
+  'Braços',
+  'Abdômen',
+  'Cardio',
+  'Outros'
 ];
 
 export default function ExerciseForm() {
@@ -32,28 +32,54 @@ export default function ExerciseForm() {
   const { id } = useParams();
   const isEditing = !!id;
 
-  const existingExercise = isEditing ? mockExercises.find(e => e.id === id) : null;
+  // 1. Hooks de API
+  const { data: existingExercise, isLoading: isLoadingData } = useExercise(id!);
+  const createExercise = useCreateExercise();
+  const updateExercise = useUpdateExercise();
 
+  const isSubmitting = createExercise.isPending || updateExercise.isPending;
+
+  // Estado alinhado com o Backend (Snake_case ou CamelCase dependendo do seu mapper)
+  // Assumindo que o Frontend usa CamelCase mas mapeia para as chaves certas
   const [formData, setFormData] = useState({
-    nome: existingExercise?.nome || '', // name -> nome
-    grupo_muscular: existingExercise?.grupo_muscular || '', // muscleGroup -> grupo_muscular
-    link_video: existingExercise?.link_video || '', // Campo novo da interface
-    descricao: existingExercise?.descricao || '', // description -> descricao
+    nome: '',
+    grupo_muscular: '',
+    link_video: '',
+    descricao: ''
   });
+
+  // 2. Preencher formulário na edição
+  useEffect(() => {
+    if (existingExercise) {
+      setFormData({
+        nome: existingExercise.nome,
+        grupo_muscular: existingExercise.grupo_muscular,
+        link_video: existingExercise.link_video || '',
+        descricao: existingExercise.descricao || '',
+      });
+    }
+  }, [existingExercise]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulação do payload que seria enviado ao backend
-    console.log("Payload para API:", formData);
-
-    toast.success(isEditing ? 'Exercício atualizado com sucesso!' : 'Exercício cadastrado com sucesso!');
-    navigate('/exercises');
+    if (isEditing && id) {
+      updateExercise.mutate({ id, data: formData });
+    } else {
+      createExercise.mutate(formData);
+    }
   };
+
+  if (isEditing && isLoadingData) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
@@ -69,79 +95,85 @@ export default function ExerciseForm() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações do Exercício</CardTitle>
-            <CardDescription>Dados do exercício para o catálogo</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="nome">Nome do Exercício *</Label>
-              <Input
-                id="nome"
-                value={formData.nome}
-                onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                placeholder="Ex: Supino reto com barra"
-                required
-              />
-            </div>
-            
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="grupo_muscular">Grupo Muscular</Label>
-                <Select
-                  value={formData.grupo_muscular}
-                  onValueChange={(value) => setFormData({...formData, grupo_muscular: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o grupo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {muscleGroups.map((group) => (
-                      <SelectItem key={group} value={group}>
-                        {group}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="link_video">Link do Vídeo (Opcional)</Label>
-                <div className="relative">
-                  <Video className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Dados do Exercício</CardTitle>
+              <CardDescription>Informações básicas e execução</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="nome">Nome do Exercício *</Label>
                   <Input
-                    id="link_video"
-                    value={formData.link_video}
-                    onChange={(e) => setFormData({...formData, link_video: e.target.value})}
-                    placeholder="https://youtube.com/..."
-                    className="pl-10"
+                    id="nome"
+                    value={formData.nome}
+                    onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                    placeholder="Ex: Supino Reto"
+                    required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="grupo">Grupo Muscular *</Label>
+                  <Select 
+                    value={formData.grupo_muscular} 
+                    onValueChange={(value) => setFormData({...formData, grupo_muscular: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {muscleGroups.map((group) => (
+                        <SelectItem key={group} value={group}>
+                          {group}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição</Label>
-              <Textarea
-                id="descricao"
-                value={formData.descricao}
-                onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                placeholder="Descreva a execução do exercício, dicas, variações..."
-                rows={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
+              {/* TODO: habilitar quando funcionalidade de vídeo estiver pronta
+              <div className="space-y-2">
+                <Label htmlFor="video">Link do Vídeo (Opcional)</Label>
+                <Input
+                  id="video"
+                  type="url"
+                  value={formData.link_video}
+                  onChange={(e) => setFormData({...formData, link_video: e.target.value})}
+                  placeholder="https://youtube.com/..."
+                />
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Cole um link do YouTube ou Vimeo demonstrando o exercício.
+                </p>
+              </div>
+              */}
 
-        {/* Actions */}
+              <div className="space-y-2">
+                <Label htmlFor="descricao">Descrição / Instruções</Label>
+                <Textarea
+                  id="descricao"
+                  value={formData.descricao}
+                  onChange={(e) => setFormData({...formData, descricao: e.target.value})}
+                  placeholder="Descreva a execução correta, postura e cuidados..."
+                  rows={4}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit">
-            <Save className="mr-2 h-4 w-4" />
-            {isEditing ? 'Salvar alterações' : 'Cadastrar exercício'}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            {isEditing ? 'Salvar alterações' : 'Criar exercício'}
           </Button>
         </div>
       </form>

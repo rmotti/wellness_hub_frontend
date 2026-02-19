@@ -35,7 +35,7 @@ export function ExerciseCombobox({
   const selectedExercise = exercises.find((e) => e.id === value);
 
   const groups = exercises.reduce<Record<string, Exercise[]>>((acc, exercise) => {
-    const group = exercise.muscleGroup || 'Outros';
+    const group = exercise.grupo_muscular || 'Outros';
     if (!acc[group]) acc[group] = [];
     acc[group].push(exercise);
     return acc;
@@ -51,7 +51,7 @@ export function ExerciseCombobox({
           className="w-full justify-between font-normal"
         >
           <span className="truncate">
-            {selectedExercise ? selectedExercise.name : placeholder}
+            {selectedExercise ? selectedExercise.nome : placeholder}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -66,9 +66,9 @@ export function ExerciseCombobox({
                 {groupExercises.map((exercise) => (
                   <CommandItem
                     key={exercise.id}
-                    value={exercise.name}
+                    value={exercise.nome}
                     onSelect={() => {
-                      onSelect(exercise.id, exercise.name);
+                      onSelect(exercise.id, exercise.nome);
                       setOpen(false);
                     }}
                   >
@@ -78,7 +78,7 @@ export function ExerciseCombobox({
                         value === exercise.id ? 'opacity-100' : 'opacity-0'
                       )}
                     />
-                    {exercise.name}
+                    {exercise.nome}
                   </CommandItem>
                 ))}
               </CommandGroup>
