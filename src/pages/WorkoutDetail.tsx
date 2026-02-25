@@ -157,7 +157,7 @@ export default function WorkoutDetail() {
                         )}
                       </div>
 
-                      {/* Métricas (Séries / Reps / Descanso) */}
+                      {/* Métricas (Séries / Reps / Descanso / Peso) */}
                       <div className="flex items-center gap-3 sm:gap-6 text-sm text-muted-foreground shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
                         <div className="flex flex-col items-center min-w-[3rem]">
                           <span className="font-bold text-foreground">{item.series}</span>
@@ -170,12 +170,21 @@ export default function WorkoutDetail() {
                         </div>
                         <div className="w-px h-8 bg-border hidden sm:block" />
                         <div className="flex flex-col items-center min-w-[3rem]">
-                            <div className="flex items-center gap-1 font-bold text-foreground">
-                                <Clock className="h-3 w-3" />
-                                {item.descanso_segundos}s
-                            </div>
+                          <div className="flex items-center gap-1 font-bold text-foreground">
+                            <Clock className="h-3 w-3" />
+                            {item.descanso_segundos}s
+                          </div>
                           <span className="text-xs">Descanso</span>
                         </div>
+                        {item.peso != null && (
+                          <>
+                            <div className="w-px h-8 bg-border hidden sm:block" />
+                            <div className="flex flex-col items-center min-w-[3rem]">
+                              <span className="font-bold text-foreground">{item.peso}kg</span>
+                              <span className="text-xs">Peso</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

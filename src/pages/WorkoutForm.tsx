@@ -31,6 +31,7 @@ interface FormExerciseItem {
   series: string;     // Baseado no seu Type: string
   repetitions: number;// Baseado no seu Type: number
   restTime: number;   // Baseado no seu Type: number
+  peso?: number;
   notes: string;
 }
 
@@ -83,12 +84,13 @@ export default function WorkoutForm() {
 
       if (apiExercises.length > 0) {
         setExercises(apiExercises.map((we: any) => ({
-          id: we.id, 
+          id: we.id,
           exerciseId: we.exercicio_id || we.exercise_id,
           exerciseName: we.Exercise?.nome || 'Exercício',
           series: we.series,
           repetitions: Number(we.repeticoes),
           restTime: Number(we.descanso_segundos),
+          peso: we.peso != null ? Number(we.peso) : undefined,
           notes: we.observacao_especifica || ''
         })));
       }
@@ -105,6 +107,7 @@ export default function WorkoutForm() {
         series: '3',
         repetitions: 12,
         restTime: 60,
+        peso: undefined,
         notes: ''
       }
     ]);
@@ -179,10 +182,11 @@ export default function WorkoutForm() {
         const payload = {
           exercicio_id: ex.exerciseId,
           treino_id: workoutId!,
-          ordem: index + 1, // Campo obrigatório
+          ordem: index + 1,
           series: String(ex.series),
           repeticoes: Number(ex.repetitions),
           descanso_segundos: Number(ex.restTime),
+          ...(ex.peso != null && { peso: Number(ex.peso) }),
           observacao_especifica: ex.notes
         };
 
@@ -318,7 +322,7 @@ export default function WorkoutForm() {
                     </div>
 
                     {/* Linha Inferior: Inputs Numéricos */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pl-12">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pl-12">
                       <div className="space-y-2">
                         <Label>Séries</Label>
                         <Input
@@ -341,6 +345,23 @@ export default function WorkoutForm() {
                           type="number"
                           value={ex.restTime}
                           onChange={(e) => updateExerciseItem(index, 'restTime', Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Peso (kg)</Label>
+                        <Input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={ex.peso ?? ''}
+                          onChange={(e) =>
+                            updateExerciseItem(
+                              index,
+                              'peso',
+                              e.target.value === '' ? undefined : Number(e.target.value)
+                            )
+                          }
+                          placeholder="Ex: 80.5"
                         />
                       </div>
                       <div className="space-y-2">

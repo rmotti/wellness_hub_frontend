@@ -63,9 +63,9 @@ export const mockMeasurements: Measurement[] = [
 
 export const mockExercises: Exercise[] = [
   { id: 'ex1', nome: 'Supino reto com barra', grupo_muscular: 'Peito', descricao: 'Exercício básico para peitorais' },
-  { id: 'ex2', nome: 'Supino inclinado com halteres', grupo_muscular: 'Peito', link_video: 'https://youtube.com/...' },
+  { id: 'ex2', nome: 'Supino inclinado com halteres', grupo_muscular: 'Peito' },
   { id: 'ex4', nome: 'Tríceps pulley', grupo_muscular: 'Tríceps' },
-  { id: 'ex11', nome: 'Agachamento livre', grupo_muscular: 'Pernas', link_video: 'https://youtube.com/...' },
+  { id: 'ex11', nome: 'Agachamento livre', grupo_muscular: 'Pernas' },
 ];
 
 export const mockWorkouts: Workout[] = [

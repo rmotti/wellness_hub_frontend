@@ -44,7 +44,6 @@ export default function ExerciseForm() {
   const [formData, setFormData] = useState({
     nome: '',
     grupo_muscular: '',
-    link_video: '',
     descricao: ''
   });
 
@@ -54,7 +53,6 @@ export default function ExerciseForm() {
       setFormData({
         nome: existingExercise.nome,
         grupo_muscular: existingExercise.grupo_muscular,
-        link_video: existingExercise.link_video || '',
         descricao: existingExercise.descricao || '',
       });
     }
@@ -132,22 +130,6 @@ export default function ExerciseForm() {
                   </Select>
                 </div>
               </div>
-
-              {/* TODO: habilitar quando funcionalidade de vídeo estiver pronta
-              <div className="space-y-2">
-                <Label htmlFor="video">Link do Vídeo (Opcional)</Label>
-                <Input
-                  id="video"
-                  type="url"
-                  value={formData.link_video}
-                  onChange={(e) => setFormData({...formData, link_video: e.target.value})}
-                  placeholder="https://youtube.com/..."
-                />
-                <p className="text-[0.8rem] text-muted-foreground">
-                  Cole um link do YouTube ou Vimeo demonstrando o exercício.
-                </p>
-              </div>
-              */}
 
               <div className="space-y-2">
                 <Label htmlFor="descricao">Descrição / Instruções</Label>

@@ -175,7 +175,7 @@ export default function StudentDetail() {
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Altura</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.altura} cm</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.altura} M</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">% Gordura (BF)</p>

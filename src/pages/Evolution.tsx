@@ -307,7 +307,7 @@ export default function Evolution() {
                           {new Date(m.data_medicao).toLocaleDateString('pt-BR')}
                         </td>
                         <td className="p-4">{m.peso} kg</td>
-                        <td className="p-4">{m.altura} cm</td>
+                        <td className="p-4">{m.altura} M</td>
                         <td className="p-4">{m.bf_percentual ? `${m.bf_percentual}%` : '-'}</td>
                       </tr>
                     ))}

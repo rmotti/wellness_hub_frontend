@@ -19,10 +19,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Tratamento de 401 (Sessão expirada ou Token inválido)
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    // 401 = token inválido/expirado | 403 = sem token (backend Express+JWT)
+    if (status === 401 || status === 403) {
       localStorage.removeItem(TOKEN_KEY);
-      
+
       // Evita loop de redirecionamento se já estivermos na tela de login
       if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
         window.location.href = '/';
