@@ -26,8 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authService
         .getProfile()
         .then(setUser)
-        .catch(() => {
-          removeToken();
+        .catch((err) => {
+          // Só remove o token se o servidor rejeitar explicitamente (401/403)
+          // Erros de rede (offline, timeout) não devem deslogar o usuário
+          const status = err?.response?.status;
+          if (status === 401 || status === 403) {
+            removeToken();
+          }
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -43,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate]);
 
   const register = useCallback(async (nome: string, email: string, password: string) => {
-    const response = await authService.register({ nome, email, password });
+    const response = await authService.register({ nome, email, password, role: 'ADMIN' });
     setToken(response.token);
     setUser(response.user);
     navigate('/dashboard');

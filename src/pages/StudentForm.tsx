@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,8 +13,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { mockStudents } from '@/data/mockData';
-import { toast } from 'sonner';
+// Importação dos Hooks reais
+import { useStudent, useCreateStudent, useUpdateStudent } from '@/hooks/api/useStudents';
+
+// Definição da interface do formulário para evitar erros de tipagem
+interface StudentFormSchema {
+  nome: string;
+  email: string;
+  telefone: string;
+  objetivo: string;
+  status: 'Ativo' | 'Inativo';
+  observacoes: string;
+  role: 'ALUNO' | 'ADMIN';
+  password: string;
+}
 
 const goals = [
   'Ganho de massa muscular',
@@ -30,33 +42,81 @@ export default function StudentForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
-  
-  // Ajustado: Busca usando a propriedade 'id' e os novos campos
-  const existingStudent = isEditing ? mockStudents.find(s => s.id === id) : null;
 
-  const [formData, setFormData] = useState({
-    nome: existingStudent?.nome || '', // name -> nome
-    email: existingStudent?.email || '',
-    telefone: existingStudent?.telefone || '', // phone -> telefone
-    objetivo: existingStudent?.objetivo || '', // goal -> objetivo
-    status: existingStudent?.status || 'Ativo', // active -> Ativo
-    observacoes: '', // notes -> observacoes (opcional conforme sua model)
+  // 1. Hooks de API
+  const { data: existingStudent, isLoading: isLoadingData, isError: isErrorData, error: errorData } = useStudent(id!);
+  const createStudent = useCreateStudent();
+  const updateStudent = useUpdateStudent();
+
+  const isSubmitting = createStudent.isPending || updateStudent.isPending;
+
+  // Estado inicial tipado
+  const [formData, setFormData] = useState<StudentFormSchema>({
+    nome: '',
+    email: '',
+    telefone: '',
+    objetivo: '',
+    status: 'Ativo',
+    observacoes: '',
+    role: 'ALUNO',
+    password: '',
   });
+
+  // 2. Preenche o formulário quando os dados da API chegam (apenas na edição)
+  useEffect(() => {
+    if (existingStudent) {
+      setFormData({
+        nome: existingStudent.nome,
+        email: existingStudent.email,
+        telefone: existingStudent.telefone,
+        objetivo: existingStudent.objetivo,
+        status: existingStudent.status as 'Ativo' | 'Inativo',
+        observacoes: '',
+        role: existingStudent.role as 'ALUNO' | 'ADMIN',
+        password: '',
+      });
+    }
+  }, [existingStudent]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulação do payload que seria enviado ao backend
-    console.log("Payload para API:", formData);
-
-    toast.success(isEditing ? 'Aluno atualizado com sucesso!' : 'Aluno cadastrado com sucesso!');
-    navigate('/students');
+    if (isEditing && id) {
+      updateStudent.mutate({ id, data: formData });
+    } else {
+      createStudent.mutate(formData);
+    }
   };
+
+  // 3. Feedback de Carregamento inicial (apenas na edição)
+  if (isEditing && isLoadingData) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Erro ao carregar dados do aluno para edição
+  if (isEditing && isErrorData) {
+    const msg = (errorData as any)?.response?.data?.message
+      || (errorData as any)?.message
+      || 'Erro ao carregar dados do aluno';
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <p className="text-destructive font-medium">{msg}</p>
+        <Button className="mt-4" onClick={() => navigate('/students')}>
+          Voltar para lista
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} type="button">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -109,6 +169,19 @@ export default function StudentForm() {
                   required
                 />
               </div>
+              {!isEditing && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    placeholder="Senha de acesso do aluno"
+                    required
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -166,12 +239,17 @@ export default function StudentForm() {
           </Card>
         </div>
 
+        {/* Actions */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit">
-            <Save className="mr-2 h-4 w-4" />
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             {isEditing ? 'Salvar alterações' : 'Cadastrar aluno'}
           </Button>
         </div>

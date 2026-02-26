@@ -21,7 +21,6 @@ export interface Exercise {
   id: string;
   nome: string;
   grupo_muscular?: string;
-  link_video?: string;
   descricao?: string;
 }
 
@@ -33,6 +32,7 @@ export interface WorkoutExercise {
   series: string;
   descanso_segundos: number;
   repeticoes: number;
+  peso?: number;
   observacao_especifica?: string;
 }
 
@@ -75,6 +75,7 @@ export interface RegisterRequest {
   nome: string;
   email: string;
   password: string;
+  role: string;
 }
 
 export interface AuthResponse {

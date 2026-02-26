@@ -9,65 +9,67 @@ import {
   TrendingUp,
   Dumbbell,
   Plus,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockStudents, mockMeasurements, mockAssignments } from '@/data/mockData';
-import { Measurement, Assignment } from '@/types';
 import { MeasurementDialog } from '@/components/MeasurementDialog';
 import { AssignWorkoutDialog } from '@/components/AssignWorkoutDialog';
-import { toast } from 'sonner';
+import { useStudent } from '@/hooks/api/useStudents';
+
+// Imports corrigidos conforme solicitado
+import { useStudentMeasurements } from '@/hooks/api/useMeasurements';
+import { useStudentWorkouts, useFinishAssignment } from '@/hooks/api/useAssignments';
 
 export default function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Ajustado: Uso da interface Student atualizada (nome)
-  const student = mockStudents.find(s => s.id === id);
+  // 1. Hooks de Busca de Dados (Queries) — todos devem ser chamados antes de qualquer return condicional
+  const { data: student, isLoading: isLoadingStudent, isError: isErrorStudent, error: errorStudent } = useStudent(id);
+  const { data: measurements = [], isLoading: isLoadingMeasurements } = useStudentMeasurements(id);
+  const { data: assignments = [], isLoading: isLoadingAssignments } = useStudentWorkouts(id);
 
-  // Ajustado: Filtros usando as novas chaves usuario_id
-  const [measurements, setMeasurements] = useState<Measurement[]>(
-    mockMeasurements.filter(m => m.usuario_id === id)
-  );
-  const [assignments, setAssignments] = useState<Assignment[]>(
-    mockAssignments.filter(a => a.usuario_id === id)
-  );
+  // 2. Hook de Mutação (Apenas o finalizar fica aqui, os outros estão nos Dialogs)
+  const finishAssignment = useFinishAssignment();
 
+  // 3. Estados locais para controle dos Modais
   const [measurementDialogOpen, setMeasurementDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
-  // Pega a medição mais recente baseada na data_medicao
-  const latestMeasurement = measurements.length > 0 
+  // 4. Lógica para pegar a última medição
+  const latestMeasurement = measurements.length > 0
     ? [...measurements].sort((a, b) => new Date(b.data_medicao).getTime() - new Date(a.data_medicao).getTime())[0]
     : null;
 
-  if (!student) {
+  // Fail-fast se não houver ID (após todos os hooks)
+  if (!id) return null;
+
+  // Renderização de Loading Inicial do Aluno
+  if (isLoadingStudent) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Renderização de Erro/Não Encontrado
+  if (isErrorStudent || !student) {
+    const msg = (errorStudent as any)?.response?.data?.message
+      || (errorStudent as any)?.message
+      || 'Aluno não encontrado';
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-muted-foreground">Aluno não encontrado</p>
+        <p className="text-destructive font-medium">{msg}</p>
         <Button className="mt-4" onClick={() => navigate('/students')}>
           Voltar para lista
         </Button>
       </div>
     );
   }
-
-  const handleSaveMeasurement = (measurement: Measurement) => {
-    setMeasurements([...measurements, measurement]);
-  };
-
-  const handleSaveAssignment = (assignment: Assignment) => {
-    setAssignments([...assignments, assignment]);
-  };
-
-  const handleFinishAssignment = (assignmentId: string) => {
-    setAssignments(assignments.map(a =>
-      a.id === assignmentId ? { ...a, status_treino: 'Finalizado' as const } : a
-    ));
-    toast.success('Ficha finalizada com sucesso!');
-  };
 
   return (
     <div className="space-y-6">
@@ -80,7 +82,7 @@ export default function StudentDetail() {
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
               <span className="text-xl font-bold text-primary">
-                {student.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {student.nome.substring(0, 2).toUpperCase()}
               </span>
             </div>
             <div>
@@ -163,7 +165,9 @@ export default function StudentDetail() {
             </Button>
           </CardHeader>
           <CardContent>
-            {latestMeasurement ? (
+            {isLoadingMeasurements ? (
+               <div className="flex justify-center py-4"><Loader2 className="animate-spin text-muted-foreground" /></div>
+            ) : latestMeasurement ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Peso</p>
@@ -171,7 +175,7 @@ export default function StudentDetail() {
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Altura</p>
-                  <p className="text-2xl font-bold">{latestMeasurement.altura} cm</p>
+                  <p className="text-2xl font-bold">{latestMeasurement.altura} M</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">% Gordura (BF)</p>
@@ -181,16 +185,12 @@ export default function StudentDetail() {
             ) : (
               <div className="text-center py-6 text-muted-foreground">
                 <p>Nenhuma avaliação registrada</p>
-                <Button className="mt-2" size="sm" onClick={() => setMeasurementDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Adicionar avaliação
-                </Button>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Assignments */}
+        {/* Assignments / Workouts */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -203,7 +203,9 @@ export default function StudentDetail() {
             </Button>
           </CardHeader>
           <CardContent>
-            {assignments.length > 0 ? (
+            {isLoadingAssignments ? (
+               <div className="flex justify-center py-4"><Loader2 className="animate-spin text-muted-foreground" /></div>
+            ) : assignments.length > 0 ? (
               <div className="space-y-3">
                 {assignments.map((assignment) => (
                   <div
@@ -215,7 +217,8 @@ export default function StudentDetail() {
                         <Dumbbell className="h-5 w-5 text-accent" />
                       </div>
                       <div>
-                        <p className="font-medium">Treino #{assignment.treino_id}</p>
+                        {/* Exibe ID do treino se o nome não vier populado do backend */}
+                        <p className="font-medium">Treino (ID: {assignment.treino_id.slice(0, 4)})</p> 
                         <p className="text-sm text-muted-foreground">
                           {new Date(assignment.data_inicio).toLocaleDateString('pt-BR')} 
                           {assignment.data_fim ? ` - ${new Date(assignment.data_fim).toLocaleDateString('pt-BR')}` : ''}
@@ -227,10 +230,10 @@ export default function StudentDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleFinishAssignment(assignment.id)}
+                          onClick={() => finishAssignment.mutate(assignment.id)}
+                          disabled={finishAssignment.isPending}
                         >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Finalizar
+                          {finishAssignment.isPending ? <Loader2 className="h-3 w-3 animate-spin"/> : <CheckCircle className="h-4 w-4" />}
                         </Button>
                       )}
                       <Badge
@@ -245,29 +248,24 @@ export default function StudentDetail() {
             ) : (
               <div className="text-center py-6 text-muted-foreground">
                 <p>Nenhum treino atribuído</p>
-                <Button className="mt-2" size="sm" onClick={() => setAssignDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Atribuir treino
-                </Button>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Dialogs */}
+      {/* Dialogs de Ação */}
       <MeasurementDialog
-        studentId={id!}
+        studentId={id}
         open={measurementDialogOpen}
         onOpenChange={setMeasurementDialogOpen}
-        onSave={handleSaveMeasurement}
       />
+
       <AssignWorkoutDialog
-        studentId={id!}
+        studentId={id}
         studentName={student.nome}
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
-        onSave={handleSaveAssignment}
       />
     </div>
   );

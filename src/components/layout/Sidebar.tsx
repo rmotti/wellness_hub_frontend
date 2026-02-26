@@ -21,7 +21,7 @@ const menuItems = [
   { icon: Dumbbell, label: 'Modelos de Treino', path: '/workouts' },
   { icon: ListChecks, label: 'Exercícios', path: '/exercises' },
   { icon: TrendingUp, label: 'Evolução', path: '/evolution' },
-  { icon: Settings, label: 'Configurações', path: '/settings' },
+  //{ icon: Settings, label: 'Configurações', path: '/settings' },
 ];
 
 export function Sidebar() {
